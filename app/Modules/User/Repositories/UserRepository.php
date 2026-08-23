@@ -7,8 +7,14 @@ use App\Modules\User\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
+/**
+ * @extends BaseRepository<User>
+ */
 class UserRepository extends BaseRepository
 {
+    /**
+     * @return class-string<User>
+     */
     protected function getModelClass(): string
     {
         return User::class;
@@ -19,7 +25,12 @@ class UserRepository extends BaseRepository
      */
     public function findByEmail(string $email): ?User
     {
-        return $this->model->where('email', $email)->first();
+        /** @var User|null $user */
+        $user = $this->query()
+            ->where('email', $email)
+            ->first();
+
+        return $user;
     }
 
     /**
@@ -27,28 +38,43 @@ class UserRepository extends BaseRepository
      */
     public function findByPhone(string $phone): ?User
     {
-        return $this->model->where('phone', $phone)->first();
+        /** @var User|null $user */
+        $user = $this->query()
+            ->where('phone', $phone)
+            ->first();
+
+        return $user;
     }
 
     /**
      * Получить активных пользователей
+     *
+     * @return Collection<int, User>
      */
     public function getActiveUsers(): Collection
     {
-        return $this->model
+        /** @var Collection<int, User> $users */
+        $users = $this->query()
             ->where('is_block', false)
             ->whereNotNull('email_verified_at')
             ->get();
+
+        return $users;
     }
 
     /**
      * Получить пользователей по роли
+     *
+     * @return LengthAwarePaginator<int, User>
      */
     public function getByRole(string $role, int $perPage = 15): LengthAwarePaginator
     {
-        return $this->model
+        /** @var LengthAwarePaginator<int, User> $users */
+        $users = $this->query()
             ->where('role', $role)
             ->paginate($perPage);
+
+        return $users;
     }
 
     /**

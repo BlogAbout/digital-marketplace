@@ -47,6 +47,8 @@ class UserTransaction extends BaseModel
 
     /**
      * Пользователь, которому принадлежит транзакция
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {

@@ -2,23 +2,26 @@
 
 namespace App\Modules\Core;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Symfony\Component\Uid\UuidV7;
 
 /**
- * @method static \Illuminate\Database\Eloquent\Builder query()
- * @method static static find(string $id)
+ * @method static Builder<static> query()
+ * @method static static|null find(string $id)
  * @method static static findOrFail(string $id)
- * @method static static create(array $attributes = [])
- * @method static static firstOrCreate(array $attributes, array $values = [])
- * @method static static firstOrNew(array $attributes, array $values = [])
- * @method static static updateOrCreate(array $attributes, array $values = [])
- * @method static \Illuminate\Database\Eloquent\Collection|static[] all()
- * @method static \Illuminate\Database\Eloquent\Collection|static[] get()
+ * @method static static create(array<string, mixed> $attributes = [])
+ * @method static static firstOrCreate(array<string, mixed> $attributes, array<string, mixed> $values = [])
+ * @method static static firstOrNew(array<string, mixed> $attributes, array<string, mixed> $values = [])
+ * @method static static updateOrCreate(array<string, mixed> $attributes, array<string, mixed> $values = [])
+ * @method static Collection<int, static> all()
+ * @method static Collection<int, static> get()
  * @method static static|null first()
  * @method static static|null firstWhere(string $column, mixed $value)
- * @method static \Illuminate\Pagination\LengthAwarePaginator paginate(int $perPage = 15)
+ * @method static LengthAwarePaginator<int, static> paginate(int $perPage = 15)
  */
 abstract class BaseModel extends Model
 {

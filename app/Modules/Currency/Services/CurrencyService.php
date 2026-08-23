@@ -76,6 +76,7 @@ class CurrencyService
 
             if ($response->successful()) {
                 $data = $response->json();
+
                 return $data['rates'] ?? [];
             }
         } catch (\Exception $e) {
@@ -88,6 +89,7 @@ class CurrencyService
 
             if ($response->successful()) {
                 $data = $response->json();
+
                 return $data['rates'] ?? [];
             }
         } catch (\Exception $e) {
@@ -97,6 +99,7 @@ class CurrencyService
         // Если оба источника недоступны, вернуть текущие курсы
         /** @var array<string, float> $currentRates */
         $currentRates = Currency::query()->pluck('rate', 'id')->toArray();
+
         return $currentRates;
     }
 
@@ -116,12 +119,12 @@ class CurrencyService
         /** @var Currency|null $currency */
         $currency = Currency::getDefault();
 
-        if (!$currency) {
+        if (! $currency) {
             /** @var Currency|null $currency */
             $currency = Currency::query()->first();
         }
 
-        if (!$currency) {
+        if (! $currency) {
             throw new \RuntimeException('No currencies available');
         }
 

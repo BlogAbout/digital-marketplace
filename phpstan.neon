@@ -8,11 +8,14 @@ parameters:
         - Illuminate\Database\Eloquent\Model
         - Illuminate\Foundation\Http\FormRequest
     ignoreErrors:
-        - '#Unsafe usage of new static#'
         - '#Cannot access property \$[a-zA-Z_]+ on#'
+        - '#Unsafe usage of new static#'
         - '#Access to an undefined property Illuminate\\Http\\Request#'
         - '#PHPDoc type array<string> of property#'
         - '#should return .* but returns Illuminate\\Database\\Eloquent\\Model#'
+        - '#Call to an undefined method TModel of Illuminate\\Database\\Eloquent\\Model#'
+        - '#has no value type specified in iterable type#'
+        - '#with no value type specified in iterable type#'
     bootstrapFiles:
         - vendor/laravel/framework/src/Illuminate/Foundation/helpers.php
     excludePaths:

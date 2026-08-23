@@ -5,11 +5,18 @@ namespace App\Modules\User\Services;
 use App\Modules\Core\BaseService;
 use App\Modules\User\Models\User;
 use App\Modules\User\Repositories\UserRepository;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 
+/**
+ * @extends BaseService<UserRepository>
+ */
 class UserService extends BaseService
 {
+    /**
+     * @return class-string<UserRepository>
+     */
     protected function getRepositoryClass(): string
     {
         return UserRepository::class;
@@ -33,6 +40,8 @@ class UserService extends BaseService
 
     /**
      * Создать пользователя
+     *
+     * @param  array<string, mixed>  $data
      */
     public function createUser(array $data): User
     {
@@ -43,6 +52,7 @@ class UserService extends BaseService
             'locale' => $data['locale'] ?? 'ru',
         ];
 
+        /** @var User $user */
         $user = $this->repository->create($data);
 
         Cache::forget("user:{$user->id}");
@@ -52,8 +62,10 @@ class UserService extends BaseService
 
     /**
      * Обновить пользователя
+     *
+     * @param  array<string, mixed>  $data
      */
-    public function updateUser(User $user, array $data): User
+    public function updateUser(Model|User $user, array $data): User
     {
         if (isset($data['password'])) {
             $data['password'] = Hash::make($data['password']);
@@ -67,6 +79,7 @@ class UserService extends BaseService
 
         Cache::forget("user:{$user->id}");
 
+        /** @var User $user */
         return $user->fresh();
     }
 
@@ -75,30 +88,35 @@ class UserService extends BaseService
      */
     public function getUserWithCache(string $id): User
     {
-        return Cache::remember("user:{$id}", 3600, function () use ($id) {
+        /** @var User $user */
+        $user = Cache::remember("user:{$id}", 3600, function () use ($id) {
             return $this->repository->findOrFail($id);
         });
+
+        return $user;
     }
 
     /**
      * Заблокировать пользователя
      */
-    public function blockUser(User $user): User
+    public function blockUser(Model|User $user): User
     {
         $user->update(['is_block' => true]);
         Cache::forget("user:{$user->id}");
 
+        /** @var User $user */
         return $user->fresh();
     }
 
     /**
      * Разблокировать пользователя
      */
-    public function unblockUser(User $user): User
+    public function unblockUser(Model|User $user): User
     {
         $user->update(['is_block' => false]);
         Cache::forget("user:{$user->id}");
 
+        /** @var User $user */
         return $user->fresh();
     }
 

@@ -83,6 +83,8 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
 
     /**
      * Получить транзакции пользователя
+     *
+     * @return HasMany<UserTransaction, $this>
      */
     public function transactions(): HasMany
     {
@@ -121,16 +123,5 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
     public function getCurrency(): string
     {
         return $this->getSetting('currency', 'USD');
-    }
-
-    /**
-     * Установить валюту пользователя
-     */
-    public function setCurrency(string $currency): void
-    {
-        $settings = $this->settings ?? [];
-        $settings['currency'] = $currency;
-        $this->settings = $settings;
-        $this->save();
     }
 }

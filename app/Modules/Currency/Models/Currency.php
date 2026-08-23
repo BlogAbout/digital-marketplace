@@ -66,6 +66,7 @@ class Currency extends BaseModel
     {
         /** @var static|null $currency */
         $currency = self::query()->where('is_default', true)->first();
+
         return $currency;
     }
 
@@ -81,12 +82,13 @@ class Currency extends BaseModel
         $fromCurrency = self::query()->find($from);
         $toCurrency = self::query()->find($to);
 
-        if (!$fromCurrency || !$toCurrency) {
+        if (! $fromCurrency || ! $toCurrency) {
             throw new \InvalidArgumentException("Currency not found: {$from} or {$to}");
         }
 
         // Конвертация через базовую валюту (USD)
         $amountInBase = $amount / (float) $fromCurrency->rate;
+
         return $amountInBase * (float) $toCurrency->rate;
     }
 }
