@@ -76,11 +76,22 @@ class ShopProductController extends Controller
      */
     public function store(CreateProductRequest $request): JsonResponse
     {
+        /** @var \App\Modules\User\Models\User $user */
+        $user = $request->user();
+
+        $images = $request->getImages();
+        $productFile = $request->getProductFile();
+
         $product = $this->productService->createProduct(
             $request->validated(),
-            $request->user(),
-            $request->file('images')
+            $user,
+            $images
         );
+
+        // Загружаем основной файл товара, если он есть
+        if ($productFile) {
+            $this->productService->uploadProductFile($product, $productFile, $user);
+        }
 
         return response()->json([
             'message' => 'Товар успешно создан и отправлен на модерацию',

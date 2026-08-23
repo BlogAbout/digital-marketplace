@@ -26,6 +26,7 @@ class ShopOrderController extends Controller
      */
     public function store(CreateOrderRequest $request): JsonResponse
     {
+        /** @var ShopProduct $product */
         $product = ShopProduct::query()->findOrFail($request->input('product_id'));
 
         // Проверяем, что товар одобрен
@@ -35,7 +36,6 @@ class ShopOrderController extends Controller
             ], 400);
         }
 
-        // Получаем текущего пользователя
         /** @var \App\Modules\User\Models\User $user */
         $user = $request->user();
 

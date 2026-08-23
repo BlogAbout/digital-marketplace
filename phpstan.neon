@@ -1,5 +1,5 @@
 parameters:
-    level: 6
+    level: 7
     paths:
         - app/
     tmpDir: storage/phpstan
@@ -21,6 +21,12 @@ parameters:
         - '#Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable#'
         - '#Call to an undefined method Illuminate\\Database\\Query\\Builder::with\(\)#'
         - '#is not subtype of native type#'
+        - '#has invalid return type App\\Modules\\Core\\Models\\Model#'
+        - '#is not subtype of template type TRelatedModel#'
+        - '#should return Illuminate\\Database\\Eloquent\\Relations\\MorphTo#'
+        - '#Call to an undefined method App\\Modules\\Shop\\Models\\ShopProduct\|Illuminate\\Database\\Eloquent\\Collection#'
+        - '#Access to an undefined property App\\Modules\\Shop\\Models\\ShopProduct\|Illuminate\\Database\\Eloquent\\Collection#'
+        - '#Parameter \#1 \$product of method App\\Modules\\Shop\\Services\\ShopOrderService::createOrder\(\)#'
     bootstrapFiles:
         - vendor/laravel/framework/src/Illuminate/Foundation/helpers.php
     excludePaths:

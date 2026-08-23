@@ -3,15 +3,21 @@
 namespace App\Modules\Shop\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\UploadedFile;
 
 class CreateProductRequest extends FormRequest
 {
+    /**
+     * Determine if the user is authorized to make this request.
+     */
     public function authorize(): bool
     {
         return true;
     }
 
     /**
+     * Get the validation rules that apply to the request.
+     *
      * @return array<string, mixed>
      */
     public function rules(): array
@@ -35,7 +41,43 @@ class CreateProductRequest extends FormRequest
             'update_discount' => ['sometimes', 'numeric', 'min:0', 'max:100', 'nullable'],
             'images' => ['sometimes', 'array', 'max:10'],
             'images.*' => ['image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
-            'file' => ['sometimes', 'file', 'max:1048576'], // Максимум 1GB
+            'file' => ['sometimes', 'file', 'max:1048576'],
         ];
+    }
+
+    /**
+     * Get images as array of UploadedFile
+     *
+     * @return array<int, UploadedFile>|null
+     */
+    public function getImages(): ?array
+    {
+        $images = $this->file('images');
+
+        if (!$images) {
+            return null;
+        }
+
+        if (!is_array($images)) {
+            return [$images];
+        }
+
+        /** @var array<int, UploadedFile> $images */
+        return $images;
+    }
+
+    /**
+     * Get the main product file
+     */
+    public function getProductFile(): ?UploadedFile
+    {
+        $file = $this->file('file');
+
+        if (!$file) {
+            return null;
+        }
+
+        /** @var UploadedFile $file */
+        return $file;
     }
 }

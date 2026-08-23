@@ -45,12 +45,12 @@ class ShopProductService extends BaseService
         }
 
         $data['author_id'] = $author->id;
-        $data['status'] = 'pending'; // Отправляем на модерацию
+        $data['status'] = 'pending';
 
         /** @var ShopProduct $product */
         $product = $this->repository->create($data);
 
-        if ($images) {
+        if ($images !== null) {
             $this->uploadProductImages($product, $images, $author);
         }
 
