@@ -8,16 +8,25 @@ use Illuminate\Support\Facades\File;
 
 class ModuleServiceProvider extends ServiceProvider
 {
+    /**
+     * Register services.
+     */
     public function register(): void
     {
         $this->registerModules();
     }
 
+    /**
+     * Bootstrap services.
+     */
     public function boot(): void
     {
         $this->bootModules();
     }
 
+    /**
+     * Register module configurations.
+     */
     protected function registerModules(): void
     {
         $modules = config('modules.modules', []);
@@ -27,6 +36,9 @@ class ModuleServiceProvider extends ServiceProvider
         }
     }
 
+    /**
+     * Boot modules.
+     */
     protected function bootModules(): void
     {
         $modules = config('modules.modules', []);
@@ -39,6 +51,9 @@ class ModuleServiceProvider extends ServiceProvider
         }
     }
 
+    /**
+     * Register module configuration.
+     */
     protected function registerModuleConfig(string $module): void
     {
         $configPath = $this->getModulePath($module) . '/config';
@@ -51,6 +66,9 @@ class ModuleServiceProvider extends ServiceProvider
         }
     }
 
+    /**
+     * Boot module routes.
+     */
     protected function bootModuleRoutes(string $module): void
     {
         $routesPath = $this->getModulePath($module) . '/routes';
@@ -58,15 +76,37 @@ class ModuleServiceProvider extends ServiceProvider
         if (File::isDirectory($routesPath)) {
             foreach (File::files($routesPath) as $file) {
                 $routeType = $file->getFilenameWithoutExtension();
-                $middleware = $this->getRouteMiddleware($routeType);
 
-                Route::middleware($middleware)
-                    ->prefix($this->getRoutePrefix($routeType))
-                    ->group($file->getPathname());
+                switch ($routeType) {
+                    case 'api':
+                        Route::middleware('api')
+                            ->prefix('api')
+                            ->group($file->getPathname());
+                        break;
+
+                    case 'web':
+                        Route::middleware('web')
+                            ->group($file->getPathname());
+                        break;
+
+                    case 'public':
+                        Route::middleware('api')
+                            ->prefix('api/public')
+                            ->group($file->getPathname());
+                        break;
+
+                    default:
+                        Route::middleware('api')
+                            ->group($file->getPathname());
+                        break;
+                }
             }
         }
     }
 
+    /**
+     * Boot module migrations.
+     */
     protected function bootModuleMigrations(string $module): void
     {
         $migrationsPath = $this->getModulePath($module) . '/Database/Migrations';
@@ -76,6 +116,9 @@ class ModuleServiceProvider extends ServiceProvider
         }
     }
 
+    /**
+     * Boot module views.
+     */
     protected function bootModuleViews(string $module): void
     {
         $viewsPath = $this->getModulePath($module) . '/Resources/views';
@@ -85,6 +128,9 @@ class ModuleServiceProvider extends ServiceProvider
         }
     }
 
+    /**
+     * Boot module translations.
+     */
     protected function bootModuleTranslations(string $module): void
     {
         $translationsPath = $this->getModulePath($module) . '/Resources/lang';
@@ -94,28 +140,11 @@ class ModuleServiceProvider extends ServiceProvider
         }
     }
 
+    /**
+     * Get module path.
+     */
     protected function getModulePath(string $module): string
     {
         return config('modules.path') . '/' . $module;
-    }
-
-    protected function getRouteMiddleware(string $type): array
-    {
-        return match ($type) {
-            'api' => ['api', 'auth:sanctum'],
-            'web' => ['web', 'auth'],
-            'public' => ['api'],
-            default => ['api'],
-        };
-    }
-
-    protected function getRoutePrefix(string $type): string
-    {
-        return match ($type) {
-            'api' => 'api',
-            'web' => '',
-            'public' => 'api/public',
-            default => '',
-        };
     }
 }

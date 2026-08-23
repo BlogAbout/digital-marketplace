@@ -27,15 +27,19 @@ return new class extends Migration
             $table->string('remember_token', 100)->nullable();
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index('role');
+            $table->index('is_block');
+            $table->index('last_active');
         });
 
-        Schema::create('password_reset_tokens', function (Blueprint $table) {
+        Schema::create('password_reset_token', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });
 
-        Schema::create('sessions', function (Blueprint $table) {
+        Schema::create('session', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->uuid('user_id')->nullable()->index();
             $table->string('ip_address', 45)->nullable();
@@ -47,8 +51,8 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('sessions');
-        Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('session');
+        Schema::dropIfExists('password_reset_token');
         Schema::dropIfExists('user');
     }
 };

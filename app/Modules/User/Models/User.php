@@ -3,9 +3,21 @@
 namespace App\Modules\User\Models;
 
 use App\Modules\Core\BaseModel;
+use Illuminate\Auth\Authenticatable;
+use Illuminate\Auth\MustVerifyEmail;
+use Illuminate\Auth\Passwords\CanResetPassword;
+use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Foundation\Auth\Access\Authorizable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
-class User extends BaseModel
+class User extends BaseModel implements AuthenticatableContract, AuthorizableContract, CanResetPasswordContract
 {
+    use Authenticatable, Authorizable, CanResetPassword, HasApiTokens, MustVerifyEmail, Notifiable;
+
     /**
      * Название таблицы
      *
@@ -31,8 +43,6 @@ class User extends BaseModel
         'balance',
         'avatar_id',
         'role',
-        'tariff_id',
-        'tariff_expired',
     ];
 
     /**
@@ -57,6 +67,50 @@ class User extends BaseModel
         'is_block' => 'boolean',
         'settings' => 'array',
         'balance' => 'decimal:2',
-        'tariff_expired' => 'datetime',
     ];
+
+    /**
+     * Значения по умолчанию
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'settings' => '{"theme":"light","timezone":"UTC","locale":"ru"}',
+        'balance' => 0,
+        'is_block' => false,
+        'role' => 'user',
+    ];
+
+    /**
+     * Получить транзакции пользователя
+     */
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(UserTransaction::class, 'user_id', 'id');
+    }
+
+    /**
+     * Проверить, заблокирован ли пользователь
+     */
+    public function isBlocked(): bool
+    {
+        return $this->is_block;
+    }
+
+    /**
+     * Проверить роль пользователя
+     */
+    public function hasRole(string $role): bool
+    {
+        return $this->role === $role;
+    }
+
+    /**
+     * Получить настройку пользователя
+     */
+    public function getSetting(string $key, mixed $default = null): mixed
+    {
+        $settings = $this->settings ?? [];
+        return $settings[$key] ?? $default;
+    }
 }
