@@ -17,7 +17,7 @@ class UserTransaction extends BaseModel
     /**
      * Атрибуты, которые можно массово присваивать
      *
-     * @var array<string>
+     * @var array<int, string>
      */
     protected $fillable = [
         'user_id',

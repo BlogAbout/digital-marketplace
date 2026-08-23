@@ -28,7 +28,7 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
     /**
      * Атрибуты, которые можно массово присваивать
      *
-     * @var array<string>
+     * @var array<int, string>
      */
     protected $fillable = [
         'name',
@@ -48,7 +48,7 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
     /**
      * Атрибуты, которые нужно скрыть
      *
-     * @var array<string>
+     * @var array<int, string>
      */
     protected $hidden = [
         'password',
@@ -111,6 +111,7 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
     public function getSetting(string $key, mixed $default = null): mixed
     {
         $settings = $this->settings ?? [];
+
         return $settings[$key] ?? $default;
     }
 }

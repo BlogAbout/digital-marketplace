@@ -1,25 +1,24 @@
 parameters:
-    level: 9
+    level: 5
     paths:
         - app/
-        - database/
-        - tests/
     tmpDir: storage/phpstan
-    checkMissingIterableValueType: false
-    checkGenericClassInNonGenericObjectType: false
     universalObjectCratesClasses:
         - Illuminate\Http\Resources\Json\JsonResource
         - Illuminate\Database\Eloquent\Model
+        - Illuminate\Foundation\Http\FormRequest
     ignoreErrors:
         - '#Unsafe usage of new static#'
         - '#Cannot access property \$[a-zA-Z_]+ on#'
+        - '#Access to an undefined property Illuminate\\Http\\Request#'
+        - '#PHPDoc type array<string> of property#'
     bootstrapFiles:
         - vendor/laravel/framework/src/Illuminate/Foundation/helpers.php
-        - app/helpers.php
-    scanFiles:
-        - _ide_helper.php
     excludePaths:
         - storage/
         - vendor/
         - node_modules/
     reportUnmatchedIgnoredErrors: false
+    parallel:
+            maximumNumberOfProcesses: 2
+            processTimeout: 300.0

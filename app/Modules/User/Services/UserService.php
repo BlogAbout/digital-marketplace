@@ -87,6 +87,7 @@ class UserService extends BaseService
     {
         $user->update(['is_block' => true]);
         Cache::forget("user:{$user->id}");
+
         return $user->fresh();
     }
 
@@ -97,6 +98,7 @@ class UserService extends BaseService
     {
         $user->update(['is_block' => false]);
         Cache::forget("user:{$user->id}");
+
         return $user->fresh();
     }
 

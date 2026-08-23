@@ -30,27 +30,13 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Get custom messages for validator errors.
-     *
-     * @return array<string, string>
-     */
-    public function messages(): array
-    {
-        return [
-            'email.required_without' => 'Введите email или телефон',
-            'phone.required_without' => 'Введите email или телефон',
-            'password.required' => 'Пароль обязателен',
-        ];
-    }
-
-    /**
      * Prepare the data for validation.
      */
     protected function prepareForValidation(): void
     {
-        if ($this->has('phone')) {
+        if ($this->input('phone')) {
             $this->merge([
-                'phone' => preg_replace('/[^0-9+]/', '', $this->phone),
+                'phone' => preg_replace('/[^0-9+]/', '', $this->input('phone')),
             ]);
         }
     }

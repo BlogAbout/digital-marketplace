@@ -6,6 +6,20 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Symfony\Component\Uid\UuidV7;
 
+/**
+ * @method static \Illuminate\Database\Eloquent\Builder query()
+ * @method static static find(string $id)
+ * @method static static findOrFail(string $id)
+ * @method static static create(array $attributes = [])
+ * @method static static firstOrCreate(array $attributes, array $values = [])
+ * @method static static firstOrNew(array $attributes, array $values = [])
+ * @method static static updateOrCreate(array $attributes, array $values = [])
+ * @method static \Illuminate\Database\Eloquent\Collection|static[] all()
+ * @method static \Illuminate\Database\Eloquent\Collection|static[] get()
+ * @method static static|null first()
+ * @method static static|null firstWhere(string $column, mixed $value)
+ * @method static \Illuminate\Pagination\LengthAwarePaginator paginate(int $perPage = 15)
+ */
 abstract class BaseModel extends Model
 {
     use SoftDeletes;
@@ -34,14 +48,14 @@ abstract class BaseModel extends Model
     /**
      * Атрибуты, которые можно массово присваивать
      *
-     * @var array<string>
+     * @var array<int, string>
      */
     protected $fillable = [];
 
     /**
      * Атрибуты, которые нужно скрыть из массива/JSON
      *
-     * @var array<string>
+     * @var array<int, string>
      */
     protected $hidden = [];
 

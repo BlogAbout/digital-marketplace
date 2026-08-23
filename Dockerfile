@@ -29,6 +29,9 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
 # Установка Redis через PECL
 RUN pecl install redis && docker-php-ext-enable redis
 
+# Копируем конфигурацию PHP
+COPY docker/php/conf.d/memory-limit.ini /usr/local/etc/php/conf.d/memory-limit.ini
+
 # Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 

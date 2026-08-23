@@ -56,7 +56,21 @@
       "@php artisan key:generate --ansi"
     ],
     "format": "vendor/bin/pint",
-    "analyse": "vendor/bin/phpstan analyse"
+    "analyse": "vendor/bin/phpstan analyse --memory-limit=1G",
+    "test": "php artisan test",
+    "check": [
+      "@format",
+      "@analyse",
+      "@test"
+    ],
+    "docker-format": "docker-compose exec app vendor/bin/pint",
+    "docker-analyse": "docker-compose exec app vendor/bin/phpstan analyse --memory-limit=1G",
+    "docker-test": "docker-compose exec app php artisan test",
+    "docker-check": [
+      "@docker-format",
+      "@docker-analyse",
+      "@docker-test"
+    ]
   },
   "extra": {
     "laravel": {

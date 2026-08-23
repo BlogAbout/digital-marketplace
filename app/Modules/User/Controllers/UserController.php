@@ -4,9 +4,12 @@ namespace App\Modules\User\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\User\Models\User;
+use App\Modules\User\Models\UserTransaction;
 use App\Modules\User\Requests\UpdateUserRequest;
 use App\Modules\User\Resources\UserResource;
+use App\Modules\User\Resources\UserTransactionResource;
 use App\Modules\User\Services\UserService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -14,6 +17,8 @@ use Illuminate\Support\Facades\Cache;
 
 class UserController extends Controller
 {
+    use AuthorizesRequests;
+
     public function __construct(
         private readonly UserService $userService
     ) {}
@@ -23,7 +28,7 @@ class UserController extends Controller
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $perPage = $request->get('per_page', 15);
+        $perPage = (int) $request->get('per_page', 15);
         $role = $request->get('role');
         $search = $request->get('search');
         $isBlocked = $request->get('is_blocked');
@@ -61,6 +66,7 @@ class UserController extends Controller
     public function show(string $id): UserResource
     {
         $user = $this->userService->getUserWithCache($id);
+
         return new UserResource($user);
     }
 
@@ -69,7 +75,10 @@ class UserController extends Controller
      */
     public function update(UpdateUserRequest $request, string $id): JsonResponse
     {
-        $this->authorize('update', $user = User::findOrFail($id));
+        /** @var User $user */
+        $user = User::query()->findOrFail($id);
+
+        $this->authorize('update', $user);
 
         $user = $this->userService->updateUser($user, $request->validated());
 
@@ -84,7 +93,10 @@ class UserController extends Controller
      */
     public function block(string $id): JsonResponse
     {
-        $this->authorize('block', $user = User::findOrFail($id));
+        /** @var User $user */
+        $user = User::query()->findOrFail($id);
+
+        $this->authorize('block', $user);
 
         $user = $this->userService->blockUser($user);
 
@@ -99,7 +111,10 @@ class UserController extends Controller
      */
     public function unblock(string $id): JsonResponse
     {
-        $this->authorize('unblock', $user = User::findOrFail($id));
+        /** @var User $user */
+        $user = User::query()->findOrFail($id);
+
+        $this->authorize('unblock', $user);
 
         $user = $this->userService->unblockUser($user);
 
@@ -114,7 +129,10 @@ class UserController extends Controller
      */
     public function destroy(string $id): JsonResponse
     {
-        $this->authorize('delete', $user = User::findOrFail($id));
+        /** @var User $user */
+        $user = User::query()->findOrFail($id);
+
+        $this->authorize('delete', $user);
 
         $user->delete();
 
@@ -130,23 +148,26 @@ class UserController extends Controller
      */
     public function transactions(Request $request, string $id): AnonymousResourceCollection
     {
-        $user = User::findOrFail($id);
+        /** @var User $user */
+        $user = User::query()->findOrFail($id);
 
         $this->authorize('viewTransactions', $user);
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = (int) $request->get('per_page', 15);
         $type = $request->get('type');
         $status = $request->get('status');
 
-        $transactions = $user->transactions()
-            ->when($type, function ($query) use ($type) {
-                return $query->where('type', $type);
-            })
-            ->when($status, function ($query) use ($status) {
-                return $query->where('status', $status);
-            })
-            ->orderBy('created_at', 'desc')
-            ->paginate($perPage);
+        $query = UserTransaction::query()->where('user_id', $user->id);
+
+        if ($type) {
+            $query->where('type', $type);
+        }
+
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        $transactions = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
         return UserTransactionResource::collection($transactions);
     }

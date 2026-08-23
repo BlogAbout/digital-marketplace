@@ -23,7 +23,7 @@ class UpdateUserRequest extends FormRequest
      */
     public function rules(): array
     {
-        $userId = $this->route('user') ?? $this->user()->id;
+        $userId = $this->route('id') ?? $this->user()->id;
 
         return [
             'name' => ['sometimes', 'string', 'min:2', 'max:255'],
@@ -52,15 +52,15 @@ class UpdateUserRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        if ($this->has('phone')) {
+        if ($this->input('phone')) {
             $this->merge([
-                'phone' => preg_replace('/[^0-9+]/', '', $this->phone),
+                'phone' => preg_replace('/[^0-9+]/', '', $this->input('phone')),
             ]);
         }
 
-        if ($this->has('settings')) {
+        if ($this->has('settings') && is_array($this->input('settings'))) {
             $this->merge([
-                'settings' => array_merge($this->user()->settings ?? [], $this->settings),
+                'settings' => array_merge($this->user()->settings ?? [], $this->input('settings')),
             ]);
         }
     }

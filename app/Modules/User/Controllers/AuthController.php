@@ -14,9 +14,7 @@ class AuthController extends Controller
 {
     public function __construct(
         private readonly UserService $userService
-    )
-    {
-    }
+    ) {}
 
     /**
      * Регистрация пользователя
@@ -39,9 +37,17 @@ class AuthController extends Controller
      */
     public function login(LoginRequest $request): JsonResponse
     {
-        $user = $this->userService->findByEmail($request->email);
+        $login = $request->input('email') ?? $request->input('phone');
+        $password = $request->input('password');
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        $user = null;
+        if ($request->has('email')) {
+            $user = $this->userService->findByEmail($login);
+        } elseif ($request->has('phone')) {
+            $user = $this->userService->findByPhone($login);
+        }
+
+        if (! $user || ! Hash::check($password, $user->password)) {
             return response()->json([
                 'message' => 'Invalid credentials',
             ], 401);
