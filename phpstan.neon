@@ -1,0 +1,25 @@
+parameters:
+    level: 9
+    paths:
+        - app/
+        - database/
+        - tests/
+    tmpDir: storage/phpstan
+    checkMissingIterableValueType: false
+    checkGenericClassInNonGenericObjectType: false
+    universalObjectCratesClasses:
+        - Illuminate\Http\Resources\Json\JsonResource
+        - Illuminate\Database\Eloquent\Model
+    ignoreErrors:
+        - '#Unsafe usage of new static#'
+        - '#Cannot access property \$[a-zA-Z_]+ on#'
+    bootstrapFiles:
+        - vendor/laravel/framework/src/Illuminate/Foundation/helpers.php
+        - app/helpers.php
+    scanFiles:
+        - _ide_helper.php
+    excludePaths:
+        - storage/
+        - vendor/
+        - node_modules/
+    reportUnmatchedIgnoredErrors: false

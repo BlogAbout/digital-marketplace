@@ -1,0 +1,49 @@
+# Composer
+/vendor/
+composer.phar
+composer.lock
+
+# Node
+/node_modules/
+npm-debug.log
+yarn-error.log
+
+# Laravel
+.env
+.env.backup
+.env.production
+.storage/
+storage/*.key
+storage/app/*
+!storage/app/.gitignore
+storage/framework/cache/*
+!storage/framework/cache/.gitignore
+storage/framework/sessions/*
+!storage/framework/sessions/.gitignore
+storage/framework/views/*
+!storage/framework/views/.gitignore
+storage/logs/*
+!storage/logs/.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+/public/build/
+/public/hot/
+/public/storage/
+
+# Testing
+.phpunit.result.cache
+.phpunit.cache/
+coverage/
+
+# Temp
+tmp/
+temp/
