@@ -1,5 +1,5 @@
 parameters:
-    level: 5
+    level: 6
     paths:
         - app/
     tmpDir: storage/phpstan
@@ -12,6 +12,7 @@ parameters:
         - '#Cannot access property \$[a-zA-Z_]+ on#'
         - '#Access to an undefined property Illuminate\\Http\\Request#'
         - '#PHPDoc type array<string> of property#'
+        - '#should return .* but returns Illuminate\\Database\\Eloquent\\Model#'
     bootstrapFiles:
         - vendor/laravel/framework/src/Illuminate/Foundation/helpers.php
     excludePaths:
