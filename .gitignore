@@ -24,6 +24,8 @@ storage/framework/views/*
 !storage/framework/views/.gitignore
 storage/logs/*
 !storage/logs/.gitignore
+storage/phpstan/*
+!storage/phpstan/.gitignore
 
 # IDE
 .idea/
