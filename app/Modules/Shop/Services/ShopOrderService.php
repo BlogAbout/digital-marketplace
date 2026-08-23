@@ -219,14 +219,19 @@ class ShopOrderService extends BaseService
 
     /**
      * Рассчитать срок действия файла
+     *
+     * @return \DateTimeInterface|null
      */
-    protected function calculateFileExpiry(ShopProduct $product): ?\DateTime
+    protected function calculateFileExpiry(ShopProduct $product): ?\DateTimeInterface
     {
         if ($product->is_infinity_download) {
             return null;
         }
 
-        return now()->addDays($product->file_days_expired);
+        /** @var \DateTimeInterface $expiry */
+        $expiry = now()->addDays($product->file_days_expired);
+
+        return $expiry;
     }
 
     /**

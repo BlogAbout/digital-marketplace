@@ -106,13 +106,14 @@ class ShopProductRepository extends BaseRepository
      */
     public function getPopularProducts(int $limit = 10): Collection
     {
-        /** @var Collection<int, ShopProduct> $products */
-        $products = $this->query()
+        /** @var \Illuminate\Database\Eloquent\Builder<ShopProduct> $query */
+        $query = $this->query()
             ->where('status', 'approved')
             ->orderBy('views_count', 'desc')
-            ->limit($limit)
-            ->with(['author', 'images'])
-            ->get();
+            ->limit($limit);
+
+        /** @var Collection<int, ShopProduct> $products */
+        $products = $query->with(['author', 'images'])->get();
 
         return $products;
     }

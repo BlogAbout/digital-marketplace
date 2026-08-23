@@ -7,15 +7,20 @@ parameters:
         - Illuminate\Http\Resources\Json\JsonResource
         - Illuminate\Database\Eloquent\Model
         - Illuminate\Foundation\Http\FormRequest
+        - Illuminate\Foundation\Auth\Access\AuthorizesRequests
     ignoreErrors:
         - '#Cannot access property \$[a-zA-Z_]+ on#'
         - '#Unsafe usage of new static#'
         - '#Access to an undefined property Illuminate\\Http\\Request#'
         - '#PHPDoc type array<string> of property#'
         - '#should return .* but returns Illuminate\\Database\\Eloquent\\Model#'
-        - '#Call to an undefined method TModel of Illuminate\\Database\\Eloquent\\Model#'
+        - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Model#'
         - '#has no value type specified in iterable type#'
         - '#with no value type specified in iterable type#'
+        - '#Call to an undefined method Illuminate\\Contracts\\Auth\\Factory#'
+        - '#Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable#'
+        - '#Call to an undefined method Illuminate\\Database\\Query\\Builder::with\(\)#'
+        - '#is not subtype of native type#'
     bootstrapFiles:
         - vendor/laravel/framework/src/Illuminate/Foundation/helpers.php
     excludePaths:

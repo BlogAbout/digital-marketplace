@@ -8,6 +8,8 @@ use App\Modules\Shop\Requests\CreateProductRequest;
 use App\Modules\Shop\Requests\UpdateProductRequest;
 use App\Modules\Shop\Resources\ShopProductResource;
 use App\Modules\Shop\Services\ShopProductService;
+use App\Modules\User\Models\User;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -15,6 +17,8 @@ use Illuminate\Support\Facades\Auth;
 
 class ShopProductController extends Controller
 {
+    use AuthorizesRequests;
+
     public function __construct(
         private readonly ShopProductService $productService
     ) {}
@@ -29,6 +33,9 @@ class ShopProductController extends Controller
         $search = $request->get('search');
         $status = $request->get('status');
 
+        /** @var User|null $user */
+        $user = $request->user();
+
         $products = ShopProduct::query()
             ->when($categoryId, function ($query) use ($categoryId) {
                 return $query->where('category_id', $categoryId);
@@ -42,7 +49,7 @@ class ShopProductController extends Controller
             ->when($status, function ($query) use ($status) {
                 return $query->where('status', $status);
             })
-            ->when(!Auth::user()?->hasRole('admin'), function ($query) {
+            ->when(!$user || !$user->hasRole('admin'), function ($query) {
                 return $query->where('status', 'approved');
             })
             ->with(['category', 'author', 'images'])

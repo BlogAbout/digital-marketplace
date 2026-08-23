@@ -4,6 +4,7 @@ namespace App\Modules\Core\Models;
 
 use App\Modules\Core\BaseModel;
 use App\Modules\User\Models\User;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\Storage;
@@ -50,7 +51,7 @@ class File extends BaseModel
     /**
      * Полиморфная связь с владельцем файла
      *
-     * @return MorphTo
+     * @return MorphTo<Model, $this>
      */
     public function fileable(): MorphTo
     {
@@ -62,7 +63,10 @@ class File extends BaseModel
      */
     public function getUrl(): string
     {
-        return Storage::disk($this->disk)->url($this->path);
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        $disk = Storage::disk($this->disk);
+
+        return $disk->url($this->path);
     }
 
     /**
@@ -70,7 +74,10 @@ class File extends BaseModel
      */
     public function getTemporaryUrl(int $minutes = 60): string
     {
-        return Storage::disk($this->disk)->temporaryUrl(
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        $disk = Storage::disk($this->disk);
+
+        return $disk->temporaryUrl(
             $this->path,
             now()->addMinutes($minutes)
         );

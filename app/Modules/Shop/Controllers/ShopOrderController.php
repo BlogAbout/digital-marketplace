@@ -35,8 +35,12 @@ class ShopOrderController extends Controller
             ], 400);
         }
 
+        // Получаем текущего пользователя
+        /** @var \App\Modules\User\Models\User $user */
+        $user = $request->user();
+
         // Проверяем, что пользователь не покупает свой товар
-        if ($product->author_id === $request->user()->id) {
+        if ($product->author_id === $user->id) {
             return response()->json([
                 'message' => 'Нельзя купить собственный товар',
             ], 400);
@@ -45,7 +49,7 @@ class ShopOrderController extends Controller
         try {
             $order = $this->orderService->createOrder(
                 $product,
-                $request->user(),
+                $user,
                 $request->input('domain'),
                 $request->input('promo_code')
             );
@@ -70,12 +74,15 @@ class ShopOrderController extends Controller
         $type = $request->get('type', 'buyer'); // buyer или seller
         $status = $request->get('status');
 
+        /** @var \App\Modules\User\Models\User $user */
+        $user = $request->user();
+
         $query = ShopOrder::query()
-            ->when($type === 'buyer', function ($query) {
-                return $query->where('buyer_id', auth()->id());
+            ->when($type === 'buyer', function ($query) use ($user) {
+                return $query->where('buyer_id', $user->id);
             })
-            ->when($type === 'seller', function ($query) {
-                return $query->where('seller_id', auth()->id());
+            ->when($type === 'seller', function ($query) use ($user) {
+                return $query->where('seller_id', $user->id);
             })
             ->when($status, function ($query) use ($status) {
                 return $query->where('status', $status);
