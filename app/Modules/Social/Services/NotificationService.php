@@ -2,6 +2,7 @@
 
 namespace App\Modules\Social\Services;
 
+use App\Events\ToastNotification;
 use App\Modules\Social\Models\Notification;
 use App\Modules\Social\Repositories\NotificationRepository;
 use App\Modules\User\Models\User;
@@ -17,7 +18,7 @@ class NotificationService
     /**
      * Создать уведомление
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function createNotification(User $user, array $data): Notification
     {
@@ -61,7 +62,7 @@ class NotificationService
         ]);
 
         // Отправляем через WebSocket
-        broadcast(new \App\Events\ToastNotification($user, $notification));
+        broadcast(new ToastNotification($user, $notification));
     }
 
     /**

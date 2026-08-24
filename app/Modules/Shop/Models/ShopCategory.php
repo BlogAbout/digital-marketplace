@@ -49,7 +49,7 @@ class ShopCategory extends BaseModel
      */
     public function parent(): BelongsTo
     {
-        return $this->belongsTo(ShopCategory::class, 'category_id', 'id');
+        return $this->belongsTo(self::class, 'category_id', 'id');
     }
 
     /**
@@ -59,7 +59,7 @@ class ShopCategory extends BaseModel
      */
     public function children(): HasMany
     {
-        return $this->hasMany(ShopCategory::class, 'category_id', 'id');
+        return $this->hasMany(self::class, 'category_id', 'id');
     }
 
     /**

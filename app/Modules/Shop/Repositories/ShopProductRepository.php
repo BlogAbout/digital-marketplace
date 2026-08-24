@@ -4,6 +4,7 @@ namespace App\Modules\Shop\Repositories;
 
 use App\Modules\Core\BaseRepository;
 use App\Modules\Shop\Models\ShopProduct;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -106,7 +107,7 @@ class ShopProductRepository extends BaseRepository
      */
     public function getPopularProducts(int $limit = 10): Collection
     {
-        /** @var \Illuminate\Database\Eloquent\Builder<ShopProduct> $query */
+        /** @var Builder<ShopProduct> $query */
         $query = $this->query()
             ->where('status', 'approved')
             ->orderBy('views_count', 'desc')

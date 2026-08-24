@@ -54,11 +54,11 @@ class CreateProductRequest extends FormRequest
     {
         $images = $this->file('images');
 
-        if (!$images) {
+        if (! $images) {
             return null;
         }
 
-        if (!is_array($images)) {
+        if (! is_array($images)) {
             return [$images];
         }
 
@@ -73,7 +73,7 @@ class CreateProductRequest extends FormRequest
     {
         $file = $this->file('file');
 
-        if (!$file) {
+        if (! $file) {
             return null;
         }
 

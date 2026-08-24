@@ -3,7 +3,6 @@
 namespace App\Modules\Shop\Services;
 
 use App\Modules\Core\BaseService;
-use App\Modules\Core\Models\File;
 use App\Modules\Core\Services\FileService;
 use App\Modules\Shop\Models\ShopOrder;
 use App\Modules\Shop\Models\ShopProduct;
@@ -135,7 +134,7 @@ class ShopOrderService extends BaseService
             ]);
 
             // Начисляем средства продавцу
-            if (!$product->is_free) {
+            if (! $product->is_free) {
                 $this->balanceService->creditFromSale(
                     $order->seller,
                     (float) $order->cost,
@@ -181,7 +180,7 @@ class ShopOrderService extends BaseService
      */
     public function refundOrder(ShopOrder $order): ShopOrder
     {
-        if (!$order->isCompleted()) {
+        if (! $order->isCompleted()) {
             throw new \InvalidArgumentException('Можно вернуть только завершенный заказ');
         }
 
@@ -205,7 +204,7 @@ class ShopOrderService extends BaseService
      */
     protected function generateDownloadLink(ShopProduct $product): string
     {
-        if (!$product->file) {
+        if (! $product->file) {
             return '';
         }
 
@@ -242,7 +241,7 @@ class ShopOrderService extends BaseService
         $product = $order->product;
         $apiKey = $product->apiKey;
 
-        if (!$apiKey || !$apiKey->isActive()) {
+        if (! $apiKey || ! $apiKey->isActive()) {
             return;
         }
 

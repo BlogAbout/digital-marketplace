@@ -2,9 +2,9 @@
 
 namespace App\Providers;
 
+use App\Modules\Social\Events\PostPublished;
 use App\Modules\Social\Events\ProductCreated;
 use App\Modules\Social\Events\ProductUpdated;
-use App\Modules\Social\Events\PostPublished;
 use App\Modules\Social\Listeners\CreateActivityAndNotify;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 

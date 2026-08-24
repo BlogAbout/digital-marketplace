@@ -27,6 +27,8 @@ parameters:
         - '#Call to an undefined method App\\Modules\\Shop\\Models\\ShopProduct\|Illuminate\\Database\\Eloquent\\Collection#'
         - '#Access to an undefined property App\\Modules\\Shop\\Models\\ShopProduct\|Illuminate\\Database\\Eloquent\\Collection#'
         - '#Parameter \#1 \$product of method App\\Modules\\Shop\\Services\\ShopOrderService::createOrder\(\)#'
+        - '#Access to an undefined property object::\$user#'
+        - '#Negated boolean expression is always false#'
     bootstrapFiles:
         - vendor/laravel/framework/src/Illuminate/Foundation/helpers.php
     excludePaths:

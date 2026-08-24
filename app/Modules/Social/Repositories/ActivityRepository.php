@@ -22,7 +22,7 @@ class ActivityRepository extends BaseRepository
     /**
      * Получить ленту активности пользователя
      *
-     * @param array<int, string> $userIds
+     * @param  array<int, string>  $userIds
      * @return LengthAwarePaginator<int, Activity>
      */
     public function getUserFeed(array $userIds, int $perPage = 15): LengthAwarePaginator

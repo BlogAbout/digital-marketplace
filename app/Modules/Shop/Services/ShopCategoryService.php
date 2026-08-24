@@ -25,11 +25,11 @@ class ShopCategoryService extends BaseService
     /**
      * Создать категорию
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function createCategory(array $data): ShopCategory
     {
-        if (!isset($data['slug'])) {
+        if (! isset($data['slug'])) {
             $data['slug'] = Str::slug($data['name']);
         }
 
@@ -44,11 +44,11 @@ class ShopCategoryService extends BaseService
     /**
      * Обновить категорию
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function updateCategory(ShopCategory $category, array $data): ShopCategory
     {
-        if (isset($data['name']) && !isset($data['slug'])) {
+        if (isset($data['name']) && ! isset($data['slug'])) {
             $data['slug'] = Str::slug($data['name']);
         }
 

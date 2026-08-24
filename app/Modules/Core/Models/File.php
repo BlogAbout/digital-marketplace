@@ -7,6 +7,7 @@ use App\Modules\User\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -63,7 +64,7 @@ class File extends BaseModel
      */
     public function getUrl(): string
     {
-        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        /** @var FilesystemAdapter $disk */
         $disk = Storage::disk($this->disk);
 
         return $disk->url($this->path);
@@ -74,7 +75,7 @@ class File extends BaseModel
      */
     public function getTemporaryUrl(int $minutes = 60): string
     {
-        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        /** @var FilesystemAdapter $disk */
         $disk = Storage::disk($this->disk);
 
         return $disk->temporaryUrl(

@@ -38,6 +38,7 @@ class ShopCategoryController extends Controller
     public function show(string $id): ShopCategoryResource
     {
         $category = ShopCategory::query()->findOrFail($id);
+
         return new ShopCategoryResource($category);
     }
 

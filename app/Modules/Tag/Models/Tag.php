@@ -2,6 +2,7 @@
 
 namespace App\Modules\Tag\Models;
 
+use App\Modules\Blog\Models\Blog;
 use App\Modules\Blog\Models\BlogPost;
 use App\Modules\Core\BaseModel;
 use App\Modules\Shop\Models\ShopProduct;
@@ -48,12 +49,12 @@ class Tag extends BaseModel
     /**
      * Блоги с этим тегом
      *
-     * @return MorphToMany<\App\Modules\Blog\Models\Blog, $this>
+     * @return MorphToMany<Blog, $this>
      */
     public function blogs(): MorphToMany
     {
         return $this->morphedByMany(
-            \App\Modules\Blog\Models\Blog::class,
+            Blog::class,
             'taggable'
         );
     }

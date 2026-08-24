@@ -4,7 +4,6 @@ namespace App\Modules\Social\Repositories;
 
 use App\Modules\Core\BaseRepository;
 use App\Modules\Social\Models\Subscription;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 /**

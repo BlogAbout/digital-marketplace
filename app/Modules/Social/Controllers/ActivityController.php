@@ -3,6 +3,7 @@
 namespace App\Modules\Social\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Social\Models\Activity;
 use App\Modules\Social\Resources\ActivityResource;
 use App\Modules\Social\Services\SubscriptionService;
 use App\Modules\User\Models\User;
@@ -31,7 +32,7 @@ class ActivityController extends Controller
         // Добавляем самого пользователя в ленту
         $followingIds[] = $user->id;
 
-        $activities = \App\Modules\Social\Models\Activity::query()
+        $activities = Activity::query()
             ->whereIn('user_id', $followingIds)
             ->where('visibility', 'public')
             ->with('user')

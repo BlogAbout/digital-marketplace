@@ -13,10 +13,10 @@ class FileService
     /**
      * Загрузить файл
      *
-     * @param UploadedFile $file
-     * @param User $user
-     * @param string $type
-     * @param string|null $directory
+     * @param  UploadedFile  $file
+     * @param  User  $user
+     * @param  string  $type
+     * @param  string|null  $directory
      * @return File
      */
     public function uploadFile(UploadedFile $file, User $user, string $type = 'general', ?string $directory = null): File
@@ -53,9 +53,9 @@ class FileService
     /**
      * Загрузить несколько файлов
      *
-     * @param array<int, UploadedFile> $files
-     * @param User $user
-     * @param string $type
+     * @param  array<int, UploadedFile>  $files
+     * @param  User  $user
+     * @param  string  $type
      * @return array<int, File>
      */
     public function uploadFiles(array $files, User $user, string $type = 'gallery'): array

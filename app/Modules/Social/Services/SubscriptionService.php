@@ -34,7 +34,7 @@ class SubscriptionService extends BaseService
             ->first();
 
         if ($existing) {
-            if (!$existing->is_active) {
+            if (! $existing->is_active) {
                 $existing->update([
                     'is_active' => true,
                     'subscribed_at' => now(),

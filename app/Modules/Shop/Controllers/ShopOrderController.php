@@ -8,6 +8,7 @@ use App\Modules\Shop\Models\ShopProduct;
 use App\Modules\Shop\Requests\CreateOrderRequest;
 use App\Modules\Shop\Resources\ShopOrderResource;
 use App\Modules\Shop\Services\ShopOrderService;
+use App\Modules\User\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -30,13 +31,13 @@ class ShopOrderController extends Controller
         $product = ShopProduct::query()->findOrFail($request->input('product_id'));
 
         // Проверяем, что товар одобрен
-        if (!$product->isApproved()) {
+        if (! $product->isApproved()) {
             return response()->json([
                 'message' => 'Товар недоступен для покупки',
             ], 400);
         }
 
-        /** @var \App\Modules\User\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
 
         // Проверяем, что пользователь не покупает свой товар
@@ -74,7 +75,7 @@ class ShopOrderController extends Controller
         $type = $request->get('type', 'buyer'); // buyer или seller
         $status = $request->get('status');
 
-        /** @var \App\Modules\User\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
 
         $query = ShopOrder::query()
@@ -188,7 +189,7 @@ class ShopOrderController extends Controller
 
         $this->authorize('download', $order);
 
-        if (!$order->isCompleted()) {
+        if (! $order->isCompleted()) {
             return response()->json([
                 'message' => 'Заказ не завершен',
             ], 400);
@@ -196,7 +197,7 @@ class ShopOrderController extends Controller
 
         $downloadLink = $order->getDownloadLink();
 
-        if (!$downloadLink) {
+        if (! $downloadLink) {
             return response()->json([
                 'message' => 'Срок скачивания истек',
             ], 410);

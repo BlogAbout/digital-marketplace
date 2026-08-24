@@ -66,7 +66,7 @@ class ShopPromo extends BaseModel
      */
     public function isValid(): bool
     {
-        if (!$this->is_active) {
+        if (! $this->is_active) {
             return false;
         }
 
@@ -74,7 +74,7 @@ class ShopPromo extends BaseModel
             return false;
         }
 
-        if (!$this->is_multiple && $this->used_count > 0) {
+        if (! $this->is_multiple && $this->used_count > 0) {
             return false;
         }
 

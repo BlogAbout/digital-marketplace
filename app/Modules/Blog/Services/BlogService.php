@@ -2,9 +2,9 @@
 
 namespace App\Modules\Blog\Services;
 
-use App\Modules\Core\BaseService;
 use App\Modules\Blog\Models\Blog;
 use App\Modules\Blog\Repositories\BlogRepository;
+use App\Modules\Core\BaseService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
@@ -24,11 +24,11 @@ class BlogService extends BaseService
     /**
      * Создать блог
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function createBlog(array $data): Blog
     {
-        if (!isset($data['slug'])) {
+        if (! isset($data['slug'])) {
             $data['slug'] = Str::slug($data['name']);
         }
 
@@ -43,11 +43,11 @@ class BlogService extends BaseService
     /**
      * Обновить блог
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function updateBlog(Blog $blog, array $data): Blog
     {
-        if (isset($data['name']) && !isset($data['slug'])) {
+        if (isset($data['name']) && ! isset($data['slug'])) {
             $data['slug'] = Str::slug($data['name']);
         }
 

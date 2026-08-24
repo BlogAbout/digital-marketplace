@@ -6,6 +6,8 @@ use App\Modules\Core\BaseModel;
 use App\Modules\User\Models\User;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class ShopApiKey extends BaseModel
@@ -75,17 +77,18 @@ class ShopApiKey extends BaseModel
      */
     public function sendWebhook(array $data): bool
     {
-        if (!$this->isActive()) {
+        if (! $this->isActive()) {
             return false;
         }
 
         try {
-            $response = \Illuminate\Support\Facades\Http::timeout(10)
+            $response = Http::timeout(10)
                 ->post($this->url, $data);
 
             return $response->successful();
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Webhook failed: ' . $e->getMessage());
+            Log::error('Webhook failed: ' . $e->getMessage());
+
             return false;
         }
     }

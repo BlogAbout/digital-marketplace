@@ -35,12 +35,12 @@ class ShopProductService extends BaseService
     /**
      * Создать товар
      *
-     * @param array<string, mixed> $data
-     * @param array<int, UploadedFile>|null $images
+     * @param  array<string, mixed>  $data
+     * @param  array<int, UploadedFile>|null  $images
      */
     public function createProduct(array $data, User $author, ?array $images = null): ShopProduct
     {
-        if (!isset($data['slug'])) {
+        if (! isset($data['slug'])) {
             $data['slug'] = Str::slug($data['name']);
         }
 
@@ -62,11 +62,11 @@ class ShopProductService extends BaseService
     /**
      * Обновить товар
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function updateProduct(ShopProduct $product, array $data): ShopProduct
     {
-        if (isset($data['name']) && !isset($data['slug'])) {
+        if (isset($data['name']) && ! isset($data['slug'])) {
             $data['slug'] = Str::slug($data['name']);
         }
 
@@ -81,7 +81,7 @@ class ShopProductService extends BaseService
     /**
      * Загрузить изображения товара
      *
-     * @param array<int, UploadedFile> $images
+     * @param  array<int, UploadedFile>  $images
      */
     public function uploadProductImages(ShopProduct $product, array $images, User $author): void
     {
@@ -143,7 +143,7 @@ class ShopProductService extends BaseService
     /**
      * Отклонить товар
      *
-     * @param array<string, mixed> $violation
+     * @param  array<string, mixed>  $violation
      */
     public function rejectProduct(ShopProduct $product, array $violation): ShopProduct
     {

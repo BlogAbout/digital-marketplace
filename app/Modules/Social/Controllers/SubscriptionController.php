@@ -3,6 +3,7 @@
 namespace App\Modules\Social\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Social\Models\Subscription;
 use App\Modules\Social\Resources\SubscriptionResource;
 use App\Modules\Social\Services\SubscriptionService;
 use App\Modules\User\Models\User;
@@ -23,7 +24,7 @@ class SubscriptionController extends Controller
     {
         $perPage = (int) $request->get('per_page', 15);
 
-        $followers = \App\Modules\Social\Models\Subscription::query()
+        $followers = Subscription::query()
             ->where('user_id', $userId)
             ->where('is_active', true)
             ->with('subscriber')
@@ -39,7 +40,7 @@ class SubscriptionController extends Controller
     {
         $perPage = (int) $request->get('per_page', 15);
 
-        $following = \App\Modules\Social\Models\Subscription::query()
+        $following = Subscription::query()
             ->where('subscriber_id', $userId)
             ->where('is_active', true)
             ->with('user')

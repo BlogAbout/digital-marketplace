@@ -3,6 +3,7 @@
 namespace App\Modules\Shop\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class CreateCategoryRequest extends FormRequest
@@ -111,9 +112,9 @@ class CreateCategoryRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        if ($this->has('name') && !$this->has('slug')) {
+        if ($this->has('name') && ! $this->has('slug')) {
             $this->merge([
-                'slug' => \Illuminate\Support\Str::slug($this->input('name')),
+                'slug' => Str::slug($this->input('name')),
             ]);
         }
     }

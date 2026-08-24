@@ -2,8 +2,8 @@
 
 namespace App\Modules\Blog\Repositories;
 
-use App\Modules\Core\BaseRepository;
 use App\Modules\Blog\Models\Blog;
+use App\Modules\Core\BaseRepository;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 

@@ -4,6 +4,7 @@ namespace App\Modules\Social\Models;
 
 use App\Modules\Core\BaseModel;
 use App\Modules\User\Models\User;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
@@ -45,6 +46,8 @@ class Activity extends BaseModel
 
     /**
      * Субъект активности (полиморфная связь)
+     *
+     * @return MorphTo<Model, $this>
      */
     public function subject(): MorphTo
     {

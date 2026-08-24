@@ -3,6 +3,7 @@
 namespace App\Modules\Blog\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class CreatePostRequest extends FormRequest
@@ -35,9 +36,9 @@ class CreatePostRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if ($this->has('title') && !$this->has('slug')) {
+        if ($this->has('title') && ! $this->has('slug')) {
             $this->merge([
-                'slug' => \Illuminate\Support\Str::slug($this->input('title')),
+                'slug' => Str::slug($this->input('title')),
             ]);
         }
 

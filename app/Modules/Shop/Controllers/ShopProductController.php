@@ -13,7 +13,6 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Auth;
 
 class ShopProductController extends Controller
 {
@@ -49,7 +48,7 @@ class ShopProductController extends Controller
             ->when($status, function ($query) use ($status) {
                 return $query->where('status', $status);
             })
-            ->when(!$user || !$user->hasRole('admin'), function ($query) {
+            ->when(! $user || ! $user->hasRole('admin'), function ($query) {
                 return $query->where('status', 'approved');
             })
             ->with(['category', 'author', 'images'])
@@ -76,7 +75,7 @@ class ShopProductController extends Controller
      */
     public function store(CreateProductRequest $request): JsonResponse
     {
-        /** @var \App\Modules\User\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
 
         $images = $request->getImages();

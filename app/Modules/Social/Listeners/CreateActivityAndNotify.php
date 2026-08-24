@@ -2,6 +2,11 @@
 
 namespace App\Modules\Social\Listeners;
 
+use App\Modules\Blog\Models\BlogPost;
+use App\Modules\Shop\Models\ShopProduct;
+use App\Modules\Social\Events\PostPublished;
+use App\Modules\Social\Events\ProductCreated;
+use App\Modules\Social\Events\ProductUpdated;
 use App\Modules\Social\Models\Activity;
 use App\Modules\Social\Services\NotificationService;
 use App\Modules\Social\Services\SubscriptionService;
@@ -18,76 +23,76 @@ class CreateActivityAndNotify implements ShouldQueue
     /**
      * Handle the event.
      */
-    public function handle(object $event): void
+    public function handle(ProductCreated|ProductUpdated|PostPublished $event): void
     {
         /** @var User $user */
         $user = $event->user;
 
         // Создаем запись активности
-        if (isset($event->product)) {
-            Activity::create([
+        if ($event instanceof ProductCreated || $event instanceof ProductUpdated) {
+            /** @var ShopProduct $product */
+            $product = $event->product;
+
+            $activityType = $event instanceof ProductCreated
+                ? 'product_created'
+                : 'product_updated';
+
+            Activity::query()->create([
                 'user_id' => $user->id,
-                'type' => $event instanceof \App\Modules\Social\Events\ProductCreated
-                    ? 'product_created'
-                    : 'product_updated',
-                'subject_id' => $event->product->id,
-                'subject_type' => get_class($event->product),
+                'type' => $activityType,
+                'subject_id' => $product->id,
+                'subject_type' => ShopProduct::class,
                 'data' => [
-                    'product_name' => $event->product->name,
-                    'product_slug' => $event->product->slug,
+                    'product_name' => $product->name,
+                    'product_slug' => $product->slug,
                 ],
                 'visibility' => 'public',
             ]);
+
+            $this->notifyFollowers($user, 'Новый товар', "Пользователь {$user->name} добавил новый товар: {$product->name}", "/products/{$product->slug}");
         }
 
-        if (isset($event->post)) {
-            Activity::create([
+        if ($event instanceof PostPublished) {
+            /** @var BlogPost $post */
+            $post = $event->post;
+
+            Activity::query()->create([
                 'user_id' => $user->id,
                 'type' => 'post_published',
-                'subject_id' => $event->post->id,
-                'subject_type' => get_class($event->post),
+                'subject_id' => $post->id,
+                'subject_type' => BlogPost::class,
                 'data' => [
-                    'post_title' => $event->post->title,
-                    'post_slug' => $event->post->slug,
+                    'post_title' => $post->title,
+                    'post_slug' => $post->slug,
                 ],
                 'visibility' => 'public',
             ]);
-        }
 
-        // Отправляем уведомления подписчикам
+            $this->notifyFollowers($user, 'Новый пост', "Пользователь {$user->name} опубликовал новый пост: {$post->title}", "/blog/{$post->slug}");
+        }
+    }
+
+    /**
+     * Отправить уведомления подписчикам
+     */
+    protected function notifyFollowers(User $user, string $title, string $message, string $url): void
+    {
         $followers = $this->subscriptionService->getFollowers($user->id);
 
         foreach ($followers as $follower) {
-            /** @var User $followerUser */
+            /** @var User|null $followerUser */
             $followerUser = $follower->subscriber;
 
-            if (!$followerUser) {
+            if ($followerUser === null) {
                 continue;
             }
 
-            if (isset($event->product)) {
-                $this->notificationService->createNotification($followerUser, [
-                    'type' => 'toast',
-                    'title' => 'Новый товар',
-                    'message' => "Пользователь {$user->name} добавил новый товар: {$event->product->name}",
-                    'data' => [
-                        'product_id' => $event->product->id,
-                    ],
-                    'url' => "/products/{$event->product->slug}",
-                ]);
-            }
-
-            if (isset($event->post)) {
-                $this->notificationService->createNotification($followerUser, [
-                    'type' => 'toast',
-                    'title' => 'Новый пост',
-                    'message' => "Пользователь {$user->name} опубликовал новый пост: {$event->post->title}",
-                    'data' => [
-                        'post_id' => $event->post->id,
-                    ],
-                    'url' => "/blog/{$event->post->slug}",
-                ]);
-            }
+            $this->notificationService->createNotification($followerUser, [
+                'type' => 'toast',
+                'title' => $title,
+                'message' => $message,
+                'url' => $url,
+            ]);
         }
     }
 }

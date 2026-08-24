@@ -113,7 +113,7 @@ class ShopOrder extends BaseModel
      */
     public function isFileExpired(): bool
     {
-        if (!$this->file_expired) {
+        if (! $this->file_expired) {
             return false;
         }
 
