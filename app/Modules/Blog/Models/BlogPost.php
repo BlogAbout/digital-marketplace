@@ -4,6 +4,7 @@ namespace App\Modules\Blog\Models;
 
 use App\Modules\Core\BaseModel;
 use App\Modules\Core\Models\File;
+use App\Modules\Tag\Models\Tag;
 use App\Modules\User\Models\User;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
