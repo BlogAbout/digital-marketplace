@@ -5,6 +5,7 @@ namespace App\Modules\Core\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Blog\Services\BlogIndexingService;
 use App\Modules\Shop\Services\ProductIndexingService;
+use App\Modules\User\Models\User;
 use App\Modules\User\Services\UserIndexingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -59,10 +60,10 @@ class SearchController extends Controller
      */
     public function reindex(Request $request): JsonResponse
     {
-        /** @var \App\Modules\User\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
 
-        if (!$user->hasRole('admin')) {
+        if (! $user->hasRole('admin')) {
             return response()->json([
                 'message' => 'Доступ запрещен',
             ], 403);

@@ -6,7 +6,9 @@ use App\Modules\Core\Services\FileService;
 use App\Modules\Messenger\Models\Chat;
 use App\Modules\Messenger\Models\Message;
 use App\Modules\User\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
 class MessageService
@@ -18,8 +20,8 @@ class MessageService
     /**
      * Отправить сообщение
      *
-     * @param array<string, mixed> $data
-     * @param array<int, UploadedFile>|null $files
+     * @param  array<string, mixed>  $data
+     * @param  array<int, UploadedFile>|null  $files
      */
     public function sendMessage(Chat $chat, User $user, array $data, ?array $files = null): Message
     {
@@ -137,18 +139,16 @@ class MessageService
 
     /**
      * Добавить реакцию к сообщению
-     *
-     * @param array<string, array<int, string>> $reactions
      */
     public function addReaction(Message $message, User $user, string $reaction): void
     {
         $reactions = $message->reactions ?? [];
 
-        if (!isset($reactions[$reaction])) {
+        if (! isset($reactions[$reaction])) {
             $reactions[$reaction] = [];
         }
 
-        if (!in_array($user->id, $reactions[$reaction])) {
+        if (! in_array($user->id, $reactions[$reaction])) {
             $reactions[$reaction][] = $user->id;
         }
 
@@ -165,7 +165,7 @@ class MessageService
         if (isset($reactions[$reaction])) {
             $reactions[$reaction] = array_filter(
                 $reactions[$reaction],
-                fn($userId) => $userId !== $user->id
+                fn ($userId) => $userId !== $user->id
             );
 
             if (empty($reactions[$reaction])) {
@@ -179,9 +179,9 @@ class MessageService
     /**
      * Получить сообщения чата
      *
-     * @return \Illuminate\Pagination\LengthAwarePaginator<int, Message>
+     * @return LengthAwarePaginator<int, Message>
      */
-    public function getChatMessages(Chat $chat, int $perPage = 50): \Illuminate\Pagination\LengthAwarePaginator
+    public function getChatMessages(Chat $chat, int $perPage = 50): LengthAwarePaginator
     {
         return Message::query()
             ->where('chat_id', $chat->id)
@@ -198,15 +198,18 @@ class MessageService
     /**
      * Получить сообщения треда
      *
-     * @return \Illuminate\Database\Eloquent\Collection<int, Message>
+     * @return Collection<int, Message>
      */
-    public function getThreadMessages(Message $thread): \Illuminate\Database\Eloquent\Collection
+    public function getThreadMessages(Message $thread): Collection
     {
-        return Message::query()
+        /** @var Collection<int, Message> $messages */
+        $messages = Message::query()
             ->where('thread_id', $thread->id)
             ->with('user')
             ->orderBy('created_at', 'asc')
             ->get();
+
+        return $messages;
     }
 
     /**
@@ -234,7 +237,8 @@ class MessageService
      */
     public function getReadBy(Message $message): \Illuminate\Support\Collection
     {
-        return User::query()
+        /** @var \Illuminate\Support\Collection<int, User> $users */
+        $users = User::query()
             ->whereIn('id', function ($query) use ($message) {
                 $query->select('user_id')
                     ->from('message_read')
@@ -242,5 +246,7 @@ class MessageService
                     ->whereNotNull('read_at');
             })
             ->get();
+
+        return $users;
     }
 }

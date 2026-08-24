@@ -9,38 +9,12 @@ use App\Modules\Messenger\Services\ChatService;
 use App\Modules\User\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ChatController extends Controller
 {
     public function __construct(
         private readonly ChatService $chatService
     ) {}
-
-    /**
-     * Получить чаты пользователя
-     */
-    public function index(Request $request): AnonymousResourceCollection
-    {
-        /** @var User $user */
-        $user = $request->user();
-
-        $chats = $this->chatService->getUserChats($user);
-
-        return ChatResource::collection($chats);
-    }
-
-    /**
-     * Получить чат
-     */
-    public function show(string $id): ChatResource
-    {
-        $chat = Chat::query()
-            ->with(['participants', 'lastMessage'])
-            ->findOrFail($id);
-
-        return new ChatResource($chat);
-    }
 
     /**
      * Создать приватный чат
@@ -50,6 +24,7 @@ class ChatController extends Controller
         /** @var User $user */
         $user = $request->user();
 
+        /** @var User $targetUser */
         $targetUser = User::query()->findOrFail($request->input('user_id'));
 
         if ($user->id === $targetUser->id) {
@@ -67,31 +42,14 @@ class ChatController extends Controller
     }
 
     /**
-     * Создать групповой чат
-     */
-    public function createGroupChat(Request $request): JsonResponse
-    {
-        /** @var User $user */
-        $user = $request->user();
-
-        $chat = $this->chatService->createGroupChat(
-            $user,
-            $request->input('name'),
-            $request->input('participants', [])
-        );
-
-        return response()->json([
-            'message' => 'Групповой чат успешно создан',
-            'chat' => new ChatResource($chat),
-        ], 201);
-    }
-
-    /**
      * Добавить участника в чат
      */
     public function addParticipant(Request $request, string $id): JsonResponse
     {
+        /** @var Chat $chat */
         $chat = Chat::query()->findOrFail($id);
+
+        /** @var User $user */
         $user = User::query()->findOrFail($request->input('user_id'));
 
         $this->chatService->addParticipant($chat, $user);
@@ -106,7 +64,10 @@ class ChatController extends Controller
      */
     public function removeParticipant(Request $request, string $id): JsonResponse
     {
+        /** @var Chat $chat */
         $chat = Chat::query()->findOrFail($id);
+
+        /** @var User $user */
         $user = User::query()->findOrFail($request->input('user_id'));
 
         $this->chatService->removeParticipant($chat, $user);

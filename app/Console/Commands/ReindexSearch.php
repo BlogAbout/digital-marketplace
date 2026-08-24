@@ -10,6 +10,7 @@ use Illuminate\Console\Command;
 class ReindexSearch extends Command
 {
     protected $signature = 'search:reindex {--type=all : Тип индекса (all, products, blogs, users)}';
+
     protected $description = 'Переиндексация данных для поиска';
 
     public function handle(

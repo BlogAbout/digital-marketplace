@@ -3,11 +3,9 @@
 namespace App\Modules\Messenger\Services;
 
 use App\Modules\Messenger\Models\Chat;
-use App\Modules\Messenger\Models\Message;
 use App\Modules\User\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class ChatService
 {
@@ -64,7 +62,7 @@ class ChatService
     /**
      * Создать групповой чат
      *
-     * @param array<int, string> $participantIds
+     * @param  array<int, string>  $participantIds
      */
     public function createGroupChat(User $owner, string $name, array $participantIds): Chat
     {
@@ -127,7 +125,8 @@ class ChatService
      */
     public function getUserChats(User $user): Collection
     {
-        return Chat::query()
+        /** @var Collection<int, Chat> $chats */
+        $chats = Chat::query()
             ->whereHas('participants', function ($query) use ($user) {
                 $query->where('user_id', $user->id)
                     ->whereNull('left_at');
@@ -135,5 +134,7 @@ class ChatService
             ->with(['participants', 'lastMessage'])
             ->orderBy('updated_at', 'desc')
             ->get();
+
+        return $chats;
     }
 }

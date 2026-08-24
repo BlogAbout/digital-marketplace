@@ -12,6 +12,7 @@ use App\Modules\User\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\UploadedFile;
 
 class MessageController extends Controller
 {
@@ -37,11 +38,13 @@ class MessageController extends Controller
      */
     public function store(SendMessageRequest $request, string $chatId): JsonResponse
     {
+        /** @var Chat $chat */
         $chat = Chat::query()->findOrFail($chatId);
 
         /** @var User $user */
         $user = $request->user();
 
+        /** @var array<int, UploadedFile>|null $files */
         $files = $request->file('files');
 
         $message = $this->messageService->sendMessage(
@@ -86,7 +89,10 @@ class MessageController extends Controller
      */
     public function forward(Request $request, string $id): JsonResponse
     {
+        /** @var Message $message */
         $message = Message::query()->findOrFail($id);
+
+        /** @var Chat $targetChat */
         $targetChat = Chat::query()->findOrFail($request->input('chat_id'));
 
         /** @var User $user */

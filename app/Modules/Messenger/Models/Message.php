@@ -75,7 +75,7 @@ class Message extends BaseModel
      */
     public function replyTo(): BelongsTo
     {
-        return $this->belongsTo(Message::class, 'reply_to_id', 'id');
+        return $this->belongsTo(self::class, 'reply_to_id', 'id');
     }
 
     /**
@@ -85,7 +85,7 @@ class Message extends BaseModel
      */
     public function thread(): BelongsTo
     {
-        return $this->belongsTo(Message::class, 'thread_id', 'id');
+        return $this->belongsTo(self::class, 'thread_id', 'id');
     }
 
     /**
@@ -95,7 +95,7 @@ class Message extends BaseModel
      */
     public function replies(): HasMany
     {
-        return $this->hasMany(Message::class, 'thread_id', 'id');
+        return $this->hasMany(self::class, 'thread_id', 'id');
     }
 
     /**

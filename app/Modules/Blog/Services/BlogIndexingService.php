@@ -139,6 +139,6 @@ class BlogIndexingService
             ],
         ];
 
-        return $this->elasticsearch->search(['blogs', 'blog_posts'], $searchQuery, $from, $perPage);
+        return $this->elasticsearch->multiSearch(['blogs', 'blog_posts'], $searchQuery, $from, $perPage);
     }
 }

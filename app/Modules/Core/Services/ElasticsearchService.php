@@ -4,6 +4,7 @@ namespace App\Modules\Core\Services;
 
 use Elastic\Elasticsearch\Client;
 use Elastic\Elasticsearch\ClientBuilder;
+use Elastic\Elasticsearch\Response\Elasticsearch as ElasticsearchResponse;
 use Illuminate\Support\Facades\Log;
 
 class ElasticsearchService
@@ -54,9 +55,13 @@ class ElasticsearchService
         $indexName = $this->getIndexName($type);
 
         try {
-            return $this->client->indices()->exists(['index' => $indexName])->asBool();
+            /** @var ElasticsearchResponse $response */
+            $response = $this->client->indices()->exists(['index' => $indexName]);
+
+            return $response->asBool();
         } catch (\Exception $e) {
             Log::error('Elasticsearch index check failed: ' . $e->getMessage());
+
             return false;
         }
     }
@@ -64,7 +69,7 @@ class ElasticsearchService
     /**
      * Создать индекс
      *
-     * @param array<string, mixed> $settings
+     * @param  array<string, mixed>  $settings
      */
     public function createIndex(string $type, array $settings = []): bool
     {
@@ -110,9 +115,11 @@ class ElasticsearchService
             ];
 
             $this->client->indices()->create($params);
+
             return true;
         } catch (\Exception $e) {
             Log::error('Elasticsearch index creation failed: ' . $e->getMessage());
+
             return false;
         }
     }
@@ -125,14 +132,16 @@ class ElasticsearchService
         $indexName = $this->getIndexName($type);
 
         try {
-            if (!$this->indexExists($type)) {
+            if (! $this->indexExists($type)) {
                 return true;
             }
 
             $this->client->indices()->delete(['index' => $indexName]);
+
             return true;
         } catch (\Exception $e) {
             Log::error('Elasticsearch index deletion failed: ' . $e->getMessage());
+
             return false;
         }
     }
@@ -140,7 +149,7 @@ class ElasticsearchService
     /**
      * Индексировать документ
      *
-     * @param array<string, mixed> $body
+     * @param  array<string, mixed>  $body
      */
     public function indexDocument(string $type, string $id, array $body): bool
     {
@@ -152,9 +161,11 @@ class ElasticsearchService
                 'id' => $id,
                 'body' => $body,
             ]);
+
             return true;
         } catch (\Exception $e) {
             Log::error('Elasticsearch document indexing failed: ' . $e->getMessage());
+
             return false;
         }
     }
@@ -162,7 +173,7 @@ class ElasticsearchService
     /**
      * Обновить документ
      *
-     * @param array<string, mixed> $body
+     * @param  array<string, mixed>  $body
      */
     public function updateDocument(string $type, string $id, array $body): bool
     {
@@ -176,9 +187,11 @@ class ElasticsearchService
                     'doc' => $body,
                 ],
             ]);
+
             return true;
         } catch (\Exception $e) {
             Log::error('Elasticsearch document update failed: ' . $e->getMessage());
+
             return false;
         }
     }
@@ -195,9 +208,11 @@ class ElasticsearchService
                 'index' => $indexName,
                 'id' => $id,
             ]);
+
             return true;
         } catch (\Exception $e) {
             Log::error('Elasticsearch document deletion failed: ' . $e->getMessage());
+
             return false;
         }
     }
@@ -205,7 +220,7 @@ class ElasticsearchService
     /**
      * Поиск по индексу
      *
-     * @param array<string, mixed> $query
+     * @param  array<string, mixed>  $query
      * @return array<string, mixed>
      */
     public function search(string $type, array $query, int $from = 0, int $size = 20): array
@@ -213,6 +228,7 @@ class ElasticsearchService
         $indexName = $this->getIndexName($type);
 
         try {
+            /** @var ElasticsearchResponse $response */
             $response = $this->client->search([
                 'index' => $indexName,
                 'from' => $from,
@@ -223,6 +239,7 @@ class ElasticsearchService
             return $response->asArray();
         } catch (\Exception $e) {
             Log::error('Elasticsearch search failed: ' . $e->getMessage());
+
             return [
                 'hits' => [
                     'total' => ['value' => 0],
@@ -235,7 +252,8 @@ class ElasticsearchService
     /**
      * Мультипоиск по нескольким индексам
      *
-     * @param array<string, mixed> $query
+     * @param  array<int, string>  $types
+     * @param  array<string, mixed>  $query
      * @return array<string, mixed>
      */
     public function multiSearch(array $types, array $query, int $from = 0, int $size = 20): array
@@ -245,6 +263,7 @@ class ElasticsearchService
         }, $types);
 
         try {
+            /** @var ElasticsearchResponse $response */
             $response = $this->client->search([
                 'index' => implode(',', $indices),
                 'from' => $from,
@@ -255,6 +274,7 @@ class ElasticsearchService
             return $response->asArray();
         } catch (\Exception $e) {
             Log::error('Elasticsearch multi-search failed: ' . $e->getMessage());
+
             return [
                 'hits' => [
                     'total' => ['value' => 0],

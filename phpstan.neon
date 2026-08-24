@@ -29,6 +29,8 @@ parameters:
         - '#Parameter \#1 \$product of method App\\Modules\\Shop\\Services\\ShopOrderService::createOrder\(\)#'
         - '#Access to an undefined property object::\$user#'
         - '#Negated boolean expression is always false#'
+        - '#Call to an undefined method Elastic\\Elasticsearch\\Response\\Elasticsearch\|Http\\Promise\\Promise::asBool\(\)#'
+        - '#Call to an undefined method Elastic\\Elasticsearch\\Response\\Elasticsearch\|Http\\Promise\\Promise::asArray\(\)#'
     bootstrapFiles:
         - vendor/laravel/framework/src/Illuminate/Foundation/helpers.php
     excludePaths:
