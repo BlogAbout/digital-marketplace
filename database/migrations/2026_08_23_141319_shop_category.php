@@ -9,8 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('shop_category', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('category_id')->nullable(); // Родительская категория
+            $table->uuid('id');
+            $table->primary('id'); // Явно указываем PRIMARY KEY
+
+            $table->uuid('category_id')->nullable();
             $table->string('name');
             $table->string('slug')->unique();
             $table->string('slogan')->nullable();
