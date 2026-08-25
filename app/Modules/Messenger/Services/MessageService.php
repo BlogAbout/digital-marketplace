@@ -23,8 +23,8 @@ class MessageService
     /**
      * Отправить сообщение
      *
-     * @param array<string, mixed> $data
-     * @param array<int, UploadedFile>|null $files
+     * @param  array<string, mixed>  $data
+     * @param  array<int, UploadedFile>|null  $files
      */
     public function sendMessage(Chat $chat, User $user, array $data, ?array $files = null): Message
     {

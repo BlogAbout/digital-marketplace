@@ -5,14 +5,13 @@ namespace App\Modules\Support\Services;
 use App\Modules\Support\Models\SupportTicket;
 use App\Modules\Support\Models\SupportTicketMessage;
 use App\Modules\User\Models\User;
-use Illuminate\Support\Facades\DB;
 
 class SupportTicketService
 {
     /**
      * Создать тикет
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function createTicket(User $user, array $data): SupportTicket
     {
@@ -34,7 +33,7 @@ class SupportTicketService
     /**
      * Добавить сообщение в тикет
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function addMessage(SupportTicket $ticket, User $user, array $data): SupportTicketMessage
     {

@@ -4,6 +4,7 @@ namespace App\Modules\Messenger\Models;
 
 use App\Modules\Core\BaseModel;
 use App\Modules\User\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -80,11 +81,12 @@ class Chat extends BaseModel
     /**
      * Получить пользователей чата
      *
-     * @return \Illuminate\Database\Eloquent\Collection<int, User>
+     * @return Collection<int, User>
      */
-    public function users(): \Illuminate\Database\Eloquent\Collection
+    public function users(): Collection
     {
-        return User::query()
+        /** @var Collection<int, User> $users */
+        $users = User::query()
             ->whereIn('id', function ($query) {
                 $query->select('user_id')
                     ->from('chat_participant')
@@ -92,6 +94,8 @@ class Chat extends BaseModel
                     ->whereNull('left_at');
             })
             ->get();
+
+        return $users;
     }
 
     /**

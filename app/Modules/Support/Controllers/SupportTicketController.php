@@ -4,7 +4,6 @@ namespace App\Modules\Support\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Support\Models\SupportTicket;
-use App\Modules\Support\Requests\AddTicketMessageRequest;
 use App\Modules\Support\Requests\CreateTicketRequest;
 use App\Modules\Support\Resources\SupportTicketResource;
 use App\Modules\Support\Services\SupportTicketService;
@@ -100,7 +99,7 @@ class SupportTicketController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        if (!$user->hasRole('admin') && !$user->hasRole('moderator')) {
+        if (! $user->hasRole('admin') && ! $user->hasRole('moderator')) {
             abort(403, 'Доступ запрещен');
         }
 

@@ -70,6 +70,7 @@ class DisputeController extends Controller
         /** @var User $user */
         $user = $request->user();
 
+        /** @var ShopOrder $order */
         $order = ShopOrder::query()->findOrFail($request->input('order_id'));
 
         try {
@@ -128,7 +129,7 @@ class DisputeController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        if (!$user->hasRole('admin') && !$user->hasRole('moderator')) {
+        if (! $user->hasRole('admin') && ! $user->hasRole('moderator')) {
             return response()->json([
                 'message' => 'Доступ запрещен',
             ], 403);

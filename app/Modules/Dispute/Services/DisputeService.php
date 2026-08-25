@@ -18,7 +18,7 @@ class DisputeService
     /**
      * Создать спор
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function createDispute(ShopOrder $order, User $buyer, array $data): Dispute
     {
@@ -28,7 +28,7 @@ class DisputeService
         }
 
         // Проверяем, что заказ завершен
-        if (!$order->isCompleted()) {
+        if (! $order->isCompleted()) {
             throw new \InvalidArgumentException('Можно оспорить только завершенный заказ');
         }
 
@@ -58,12 +58,12 @@ class DisputeService
     /**
      * Добавить сообщение в спор
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function addMessage(Dispute $dispute, User $user, array $data): DisputeMessage
     {
         // Проверяем, что пользователь участвует в споре
-        if ($user->id !== $dispute->buyer_id && $user->id !== $dispute->seller_id && !$user->hasRole('admin')) {
+        if ($user->id !== $dispute->buyer_id && $user->id !== $dispute->seller_id && ! $user->hasRole('admin')) {
             throw new \InvalidArgumentException('Вы не можете участвовать в этом споре');
         }
 
@@ -81,7 +81,7 @@ class DisputeService
     /**
      * Разрешить спор
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function resolveDispute(Dispute $dispute, User $resolver, array $data): Dispute
     {

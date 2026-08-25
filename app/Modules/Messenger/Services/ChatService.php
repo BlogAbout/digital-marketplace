@@ -75,7 +75,7 @@ class ChatService
     /**
      * Создать групповой чат
      *
-     * @param array<int, string> $participantIds
+     * @param  array<int, string>  $participantIds
      */
     public function createGroupChat(User $owner, string $name, array $participantIds): Chat
     {
