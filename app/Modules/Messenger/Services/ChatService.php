@@ -2,7 +2,9 @@
 
 namespace App\Modules\Messenger\Services;
 
+use App\Modules\Messenger\Events\ChatCreated;
 use App\Modules\Messenger\Models\Chat;
+use App\Modules\Messenger\Models\ChatParticipant;
 use App\Modules\User\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -28,16 +30,22 @@ class ChatService
                 'is_active' => true,
             ]);
 
-            $chat->participants()->attach([
-                $user1->id => [
-                    'role' => 'member',
-                    'joined_at' => now(),
-                ],
-                $user2->id => [
-                    'role' => 'member',
-                    'joined_at' => now(),
-                ],
+            ChatParticipant::create([
+                'chat_id' => $chat->id,
+                'user_id' => $user1->id,
+                'role' => 'member',
+                'joined_at' => now(),
             ]);
+
+            ChatParticipant::create([
+                'chat_id' => $chat->id,
+                'user_id' => $user2->id,
+                'role' => 'member',
+                'joined_at' => now(),
+            ]);
+
+            // Отправляем WebSocket событие
+            broadcast(new ChatCreated($chat))->toOthers();
 
             return $chat;
         });
@@ -48,21 +56,26 @@ class ChatService
      */
     public function findPrivateChat(User $user1, User $user2): ?Chat
     {
-        return Chat::query()
+        /** @var Chat|null $chat */
+        $chat = Chat::query()
             ->where('type', 'private')
             ->whereHas('participants', function ($query) use ($user1) {
-                $query->where('user_id', $user1->id);
+                $query->where('user_id', $user1->id)
+                    ->whereNull('left_at');
             })
             ->whereHas('participants', function ($query) use ($user2) {
-                $query->where('user_id', $user2->id);
+                $query->where('user_id', $user2->id)
+                    ->whereNull('left_at');
             })
             ->first();
+
+        return $chat;
     }
 
     /**
      * Создать групповой чат
      *
-     * @param  array<int, string>  $participantIds
+     * @param array<int, string> $participantIds
      */
     public function createGroupChat(User $owner, string $name, array $participantIds): Chat
     {
@@ -76,7 +89,9 @@ class ChatService
             ]);
 
             // Добавляем владельца
-            $chat->participants()->attach($owner->id, [
+            ChatParticipant::create([
+                'chat_id' => $chat->id,
+                'user_id' => $owner->id,
                 'role' => 'owner',
                 'joined_at' => now(),
             ]);
@@ -84,12 +99,17 @@ class ChatService
             // Добавляем остальных участников
             foreach ($participantIds as $participantId) {
                 if ($participantId !== $owner->id) {
-                    $chat->participants()->attach($participantId, [
+                    ChatParticipant::create([
+                        'chat_id' => $chat->id,
+                        'user_id' => $participantId,
                         'role' => 'member',
                         'joined_at' => now(),
                     ]);
                 }
             }
+
+            // Отправляем WebSocket событие
+            broadcast(new ChatCreated($chat))->toOthers();
 
             return $chat;
         });
@@ -98,14 +118,22 @@ class ChatService
     /**
      * Добавить участника в чат
      */
-    public function addParticipant(Chat $chat, User $user, string $role = 'member'): void
+    public function addParticipant(Chat $chat, User $user, string $role = 'member'): ChatParticipant
     {
-        $chat->participants()->syncWithoutDetaching([
-            $user->id => [
+        /** @var ChatParticipant $participant */
+        $participant = ChatParticipant::updateOrCreate(
+            [
+                'chat_id' => $chat->id,
+                'user_id' => $user->id,
+            ],
+            [
                 'role' => $role,
                 'joined_at' => now(),
-            ],
-        ]);
+                'left_at' => null,
+            ]
+        );
+
+        return $participant;
     }
 
     /**
@@ -113,9 +141,10 @@ class ChatService
      */
     public function removeParticipant(Chat $chat, User $user): void
     {
-        $chat->participants()->updateExistingPivot($user->id, [
-            'left_at' => now(),
-        ]);
+        ChatParticipant::query()
+            ->where('chat_id', $chat->id)
+            ->where('user_id', $user->id)
+            ->update(['left_at' => now()]);
     }
 
     /**

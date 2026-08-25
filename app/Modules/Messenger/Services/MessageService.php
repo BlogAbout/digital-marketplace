@@ -3,6 +3,9 @@
 namespace App\Modules\Messenger\Services;
 
 use App\Modules\Core\Services\FileService;
+use App\Modules\Messenger\Events\MessageRead;
+use App\Modules\Messenger\Events\MessageSent;
+use App\Modules\Messenger\Events\MessageUpdated;
 use App\Modules\Messenger\Models\Chat;
 use App\Modules\Messenger\Models\Message;
 use App\Modules\User\Models\User;
@@ -20,8 +23,8 @@ class MessageService
     /**
      * Отправить сообщение
      *
-     * @param  array<string, mixed>  $data
-     * @param  array<int, UploadedFile>|null  $files
+     * @param array<string, mixed> $data
+     * @param array<int, UploadedFile>|null $files
      */
     public function sendMessage(Chat $chat, User $user, array $data, ?array $files = null): Message
     {
@@ -70,6 +73,9 @@ class MessageService
                 'updated_at' => now(),
             ]);
 
+            // Отправляем WebSocket событие
+            broadcast(new MessageSent($message))->toOthers();
+
             return $message;
         });
     }
@@ -86,7 +92,12 @@ class MessageService
         ]);
 
         /** @var Message $message */
-        return $message->fresh();
+        $message = $message->fresh();
+
+        // Отправляем WebSocket событие
+        broadcast(new MessageUpdated($message))->toOthers();
+
+        return $message;
     }
 
     /**
@@ -228,6 +239,9 @@ class MessageService
                 'updated_at' => now(),
             ]
         );
+
+        // Отправляем WebSocket событие
+        broadcast(new MessageRead($message, $user))->toOthers();
     }
 
     /**

@@ -5,7 +5,6 @@ namespace App\Modules\Messenger\Models;
 use App\Modules\Core\BaseModel;
 use App\Modules\User\Models\User;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Chat extends BaseModel
@@ -51,13 +50,11 @@ class Chat extends BaseModel
     /**
      * Участники чата
      *
-     * @return BelongsToMany<User, $this>
+     * @return HasMany<ChatParticipant, $this>
      */
-    public function participants(): BelongsToMany
+    public function participants(): HasMany
     {
-        return $this->belongsToMany(User::class, 'chat_participant', 'chat_id', 'user_id')
-            ->withPivot(['role', 'is_muted', 'last_read_at', 'joined_at'])
-            ->withTimestamps();
+        return $this->hasMany(ChatParticipant::class, 'chat_id', 'id');
     }
 
     /**
@@ -81,6 +78,23 @@ class Chat extends BaseModel
     }
 
     /**
+     * Получить пользователей чата
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, User>
+     */
+    public function users(): \Illuminate\Database\Eloquent\Collection
+    {
+        return User::query()
+            ->whereIn('id', function ($query) {
+                $query->select('user_id')
+                    ->from('chat_participant')
+                    ->where('chat_id', $this->id)
+                    ->whereNull('left_at');
+            })
+            ->get();
+    }
+
+    /**
      * Проверить, является ли чат групповым
      */
     public function isGroup(): bool
@@ -94,5 +108,16 @@ class Chat extends BaseModel
     public function isPrivate(): bool
     {
         return $this->type === 'private';
+    }
+
+    /**
+     * Проверить, является ли пользователь участником чата
+     */
+    public function hasParticipant(string $userId): bool
+    {
+        return $this->participants()
+            ->where('user_id', $userId)
+            ->whereNull('left_at')
+            ->exists();
     }
 }
