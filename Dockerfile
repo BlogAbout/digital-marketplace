@@ -1,36 +1,49 @@
-FROM php:8.4-fpm
+FROM php:8.4-fpm-alpine
 
 # Установка системных зависимостей
-RUN apt-get update && apt-get install -y \
-    libpq-dev \
+RUN apk add --no-cache \
+    postgresql-dev \
     libzip-dev \
     zip \
     unzip \
     git \
     curl \
     libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    libonig-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    oniguruma-dev \
     libxml2-dev \
-    && rm -rf /var/lib/apt/lists/*
+    autoconf \
+    g++ \
+    make \
+    $PHPIZE_DEPS \
+    linux-headers
 
 # Установка PHP расширений
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install \
+RUN docker-php-ext-install \
     pdo_pgsql \
     mbstring \
     xml \
     bcmath \
-    opcache \
-    zip \
-    gd
+    opcache
 
-# Установка Redis через PECL
-RUN pecl install redis && docker-php-ext-enable redis
+# Установка zip
+RUN docker-php-ext-configure zip \
+    && docker-php-ext-install zip
 
-# Копируем конфигурацию PHP
-COPY docker/php/conf.d/memory-limit.ini /usr/local/etc/php/conf.d/memory-limit.ini
+# Установка gd
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd
+
+# Установка pcntl (важно для Reverb!)
+RUN docker-php-ext-configure pcntl --enable-pcntl \
+    && docker-php-ext-install pcntl
+
+# Установка posix
+RUN docker-php-ext-install posix
+
+# Установка Redis через PECL (если доступно)
+RUN pecl install redis || echo "Redis extension already installed"
 
 # Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -39,7 +52,6 @@ WORKDIR /var/www
 
 COPY . .
 
-# Устанавливаем зависимости
 RUN COMPOSER_MEMORY_LIMIT=-1 composer install --no-interaction --no-dev --prefer-dist
 
 RUN chmod -R 777 storage bootstrap/cache
