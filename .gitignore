@@ -1,5 +1,47 @@
-# Composer
+# Зависимости
 /vendor/
+node_modules/
+marketplace-frontend/node_modules/
+
+# Сборка
+/public/build/
+marketplace-frontend/dist/
+marketplace-frontend/.vite/
+
+# Окружение
+.env
+.env.backup
+marketplace-frontend/.env
+
+# Логи
+storage/logs/*.log
+storage/logs/*.log.*
+
+# Кэш
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Тесты
+.phpunit.result.cache
+coverage/
+marketplace-frontend/coverage/
+
+# Временные файлы
+tmp/
+temp/
+
+# Composer
 composer.phar
 composer.lock
 
@@ -9,18 +51,13 @@ npm-debug.log
 yarn-error.log
 
 # Laravel
-.env
-.env.backup
 .env.production
 .storage/
 storage/*.key
 storage/app/*
 !storage/app/.gitignore
-storage/framework/cache/*
 !storage/framework/cache/.gitignore
-storage/framework/sessions/*
 !storage/framework/sessions/.gitignore
-storage/framework/views/*
 !storage/framework/views/.gitignore
 storage/logs/*
 !storage/logs/.gitignore
@@ -28,24 +65,11 @@ storage/phpstan/*
 !storage/phpstan/.gitignore
 
 # IDE
-.idea/
-.vscode/
 *.sublime-workspace
 
-# OS
-.DS_Store
-Thumbs.db
-
 # Build
-/public/build/
 /public/hot/
 /public/storage/
 
 # Testing
-.phpunit.result.cache
 .phpunit.cache/
-coverage/
-
-# Temp
-tmp/
-temp/
