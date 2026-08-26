@@ -1,37 +1,49 @@
 import { Box, Typography, Button, Paper } from '@mui/material';
-import InboxIcon from '@mui/icons-material/Inbox';
+import { motion } from 'framer-motion';
+import type {ReactNode} from 'react';
 
 interface EmptyStateProps {
-  title?: string;
+  icon?: ReactNode;
+  title: string;
   description?: string;
   actionLabel?: string;
   onAction?: () => void;
-  icon?: React.ReactNode;
 }
 
-export default function EmptyState({
-                                     title = 'Нет данных',
-                                     description = 'Здесь пока пусто',
-                                     actionLabel,
-                                     onAction,
-                                     icon,
-                                   }: EmptyStateProps) {
+export default function EmptyState({ icon, title, description, actionLabel, onAction }: EmptyStateProps) {
   return (
-    <Paper sx={{ p: 4, textAlign: 'center' }}>
-      <Box sx={{ mb: 2 }}>
-        {icon || <InboxIcon sx={{ fontSize: 64, color: 'text.secondary' }} />}
-      </Box>
-      <Typography variant="h6" gutterBottom>
-        {title}
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        {description}
-      </Typography>
-      {actionLabel && onAction && (
-        <Button variant="contained" onClick={onAction}>
-          {actionLabel}
-        </Button>
-      )}
-    </Paper>
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3 }}
+    >
+      <Paper
+        sx={{
+          p: 6,
+          textAlign: 'center',
+          borderRadius: 6,
+          bgcolor: 'background.paper',
+        }}
+      >
+        {icon && (
+          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+            {icon}
+          </Box>
+        )}
+        <Typography variant="h6" fontWeight="bold" gutterBottom>
+          {title}
+        </Typography>
+        {description && (
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            {description}
+          </Typography>
+        )}
+        {actionLabel && onAction && (
+          <Button variant="contained" onClick={onAction}>
+            {actionLabel}
+          </Button>
+        )}
+      </Paper>
+    </motion.div>
   );
 }

@@ -3,31 +3,33 @@ import {
   Container,
   Typography,
   Grid,
-  Card,
-  CardContent,
-  CardMedia,
-  Button,
   Box,
   CircularProgress,
-  TextField,
+  FormControl,
   Select,
   MenuItem,
-  FormControl,
   InputLabel,
   Pagination,
+  Stack,
 } from '@mui/material';
-import { Link } from 'react-router-dom';
+import ProductCard from '../components/ProductCard';
+import SearchBar from '../components/SearchBar';
+import EmptyState from '../components/EmptyState';
 import { productService } from '../services/productService';
 import type { Product, Category } from '../types';
+import { useSearchParams } from 'react-router-dom';
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [categoryId, setCategoryId] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const categoryId = searchParams.get('category') || '';
+  const search = searchParams.get('search') || '';
 
   useEffect(() => {
     loadCategories();
@@ -64,32 +66,42 @@ export default function ProductsPage() {
     }
   };
 
+  const handleCategoryChange = (categoryId: string) => {
+    if (categoryId) {
+      searchParams.set('category', categoryId);
+    } else {
+      searchParams.delete('category');
+    }
+    setSearchParams(searchParams);
+    setPage(1);
+  };
+
   if (loading && !products.length) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <CircularProgress />
+        <CircularProgress size={48} />
       </Box>
     );
   }
 
   return (
-    <Container>
-      <Typography variant="h4" gutterBottom>
-        Каталог товаров
-      </Typography>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" fontWeight="bold" gutterBottom>
+          Каталог товаров
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          Найдите идеальный цифровой продукт для ваших нужд
+        </Typography>
+      </Box>
 
-      <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
-        <TextField
-          label="Поиск"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          sx={{ flex: 1 }}
-        />
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 4 }}>
+        <SearchBar />
         <FormControl sx={{ minWidth: 200 }}>
           <InputLabel>Категория</InputLabel>
           <Select
             value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
+            onChange={(e) => handleCategoryChange(e.target.value)}
             label="Категория"
           >
             <MenuItem value="">Все категории</MenuItem>
@@ -100,64 +112,34 @@ export default function ProductsPage() {
             ))}
           </Select>
         </FormControl>
-      </Box>
+      </Stack>
 
-      <Grid container spacing={3}>
-        {products.map((product) => (
-          <Grid item xs={12} sm={6} md={4} key={product.id}>
-            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <CardMedia
-                component="div"
-                sx={{
-                  height: 200,
-                  bgcolor: 'grey.200',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Typography variant="h4" color="text.secondary">
-                  {product.name.charAt(0)}
-                </Typography>
-              </CardMedia>
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Typography variant="h6" gutterBottom noWrap>
-                  {product.name}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  {product.description?.substring(0, 100)}...
-                </Typography>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="h6" color="primary">
-                    {product.is_free ? 'Бесплатно' : `${product.cost} ${product.currency}`}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {product.sales_count} продаж
-                  </Typography>
-                </Box>
-              </CardContent>
-              <Box sx={{ p: 2 }}>
-                <Button
-                  component={Link}
-                  to={`/products/${product.id}`}
-                  variant="contained"
-                  fullWidth
-                >
-                  Подробнее
-                </Button>
-              </Box>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+      {products.length > 0 ? (
+        <Grid container spacing={3}>
+          {products.map((product, index) => (
+            <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
+              <ProductCard product={product} index={index} />
+            </Grid>
+          ))}
+        </Grid>
+      ) : (
+        <EmptyState
+          icon={<ShoppingBagIcon sx={{ fontSize: 80, color: 'text.secondary' }} />}
+          title="Товары не найдены"
+          description="Попробуйте изменить параметры поиска или выберите другую категорию"
+        />
+      )}
 
       {totalPages > 1 && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
           <Pagination
             count={totalPages}
             page={page}
-            onChange={(e, value) => setPage(value)}
+            onChange={(_, value) => setPage(value)}
             color="primary"
+            size="large"
+            showFirstButton
+            showLastButton
           />
         </Box>
       )}
