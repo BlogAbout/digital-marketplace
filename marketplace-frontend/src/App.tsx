@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import { useAuthStore } from './stores/authStore';
@@ -17,6 +16,10 @@ import DashboardPage from './pages/DashboardPage';
 import SellerProductsPage from './pages/SellerProductsPage';
 import StatisticsPage from './pages/StatisticsPage';
 import SupportPage from './pages/SupportPage';
+import SupportChatPage from './pages/SupportChatPage';
+import DisputesPage from './pages/DisputesPage';
+import OrdersPage from './pages/OrdersPage';
+import { useEffect } from 'react';
 
 function App() {
   const { token, fetchUser } = useAuthStore();
@@ -72,8 +75,20 @@ function App() {
               token ? <StatisticsPage /> : <Navigate to="/login" />
             } />
 
+            <Route path="/dashboard/orders" element={
+              token ? <OrdersPage /> : <Navigate to="/login" />
+            } />
+
+            <Route path="/dashboard/disputes" element={
+              token ? <DisputesPage /> : <Navigate to="/login" />
+            } />
+
             <Route path="/support" element={
               token ? <SupportPage /> : <Navigate to="/login" />
+            } />
+
+            <Route path="/support/chat" element={
+              token ? <SupportChatPage /> : <Navigate to="/login" />
             } />
           </Route>
         </Routes>
