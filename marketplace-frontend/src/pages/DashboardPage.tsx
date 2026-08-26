@@ -1,44 +1,47 @@
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 import {
-  Container,
-  Typography,
-  Grid,
-  Paper,
+  Avatar,
   Box,
+  Button,
+  Chip,
   CircularProgress,
-  Tabs,
-  Tab,
+  Container,
+  Grid,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Paper,
+  Stack,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Chip,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Button,
+  Typography,
 } from '@mui/material';
-import { Link } from 'react-router-dom';
+import {Link} from 'react-router-dom';
 import {
-  Dashboard as DashboardIcon,
-  ShoppingCart as ShoppingCartIcon,
-  Receipt as ReceiptIcon,
-  BarChart as BarChartIcon,
-  Gavel as GavelIcon,
   Add as AddIcon,
+  AttachMoney as MoneyIcon,
+  BarChart as BarChartIcon,
+  Dashboard as DashboardIcon,
+  Gavel as GavelIcon,
+  Receipt as ReceiptIcon,
+  ShoppingCart as ShoppingCartIcon,
+  Visibility as VisibilityIcon,
 } from '@mui/icons-material';
-import { useAuthStore } from '../stores/authStore';
-import { productService } from '../services/productService';
-import { orderService } from '../services/orderService';
-import type { Product, Order } from '../types';
-import { format } from 'date-fns';
+import {useAuthStore} from '../stores/authStore';
+import {productService} from '../services/productService';
+import {orderService} from '../services/orderService';
+import type {Order, Product} from '../types';
+import {motion} from 'framer-motion';
+import StatsCard from '../components/StatsCard';
+import GradientButton from '../components/GradientButton';
 
 export default function DashboardPage() {
-  const { user } = useAuthStore();
-  const [tab, setTab] = useState(0);
+  const {user} = useAuthStore();
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,7 +54,7 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       const [productsResponse, ordersResponse] = await Promise.all([
-        productService.getProducts({ per_page: 100 }),
+        productService.getProducts({per_page: 100}),
         orderService.getMyOrders(),
       ]);
       setProducts(productsResponse.data);
@@ -65,8 +68,8 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <CircularProgress />
+      <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh'}}>
+        <CircularProgress size={48}/>
       </Box>
     );
   }
@@ -81,302 +84,214 @@ export default function DashboardPage() {
 
   const totalViews = products.reduce((sum, product) => sum + product.views_count, 0);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'success';
-      case 'paid': return 'info';
-      case 'pending': return 'warning';
-      case 'cancelled': return 'error';
-      case 'refunded': return 'default';
-      case 'approved': return 'success';
-      case 'draft': return 'default';
-      case 'rejected': return 'error';
-      default: return 'default';
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'completed': return 'Завершен';
-      case 'paid': return 'Оплачен';
-      case 'pending': return 'Ожидает';
-      case 'cancelled': return 'Отменен';
-      case 'refunded': return 'Возврат';
-      case 'approved': return 'Одобрен';
-      case 'draft': return 'Черновик';
-      case 'rejected': return 'Отклонен';
-      default: return status;
-    }
-  };
-
   return (
-    <Container maxWidth="xl">
-      <Typography variant="h4" gutterBottom>
-        Дашборд
-      </Typography>
+    <Container maxWidth="xl" sx={{py: 4}}>
+      {/* Welcome Section */}
+      <motion.div
+        initial={{opacity: 0, y: 20}}
+        animate={{opacity: 1, y: 0}}
+        transition={{duration: 0.5}}
+      >
+        <Paper
+          sx={{
+            p: 4,
+            mb: 4,
+            borderRadius: 6,
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <Box
+            sx={{
+              position: 'absolute',
+              top: -50,
+              right: -50,
+              width: 200,
+              height: 200,
+              borderRadius: '50%',
+              bgcolor: 'rgba(255, 255, 255, 0.1)',
+            }}
+          />
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: -75,
+              right: 75,
+              width: 150,
+              height: 150,
+              borderRadius: '50%',
+              bgcolor: 'rgba(255, 255, 255, 0.05)',
+            }}
+          />
+          <Box sx={{position: 'relative', zIndex: 1}}>
+            <Typography variant="h4" fontWeight="bold" gutterBottom>
+              Добро пожаловать, {user?.name}!
+            </Typography>
+            <Typography variant="body1" sx={{mb: 3, opacity: 0.9}}>
+              Управляйте своими товарами, отслеживайте продажи и развивайте бизнес
+            </Typography>
+            <GradientButton
+              component={Link}
+              to="/dashboard/products"
+              startIcon={<AddIcon/>}
+              sx={{
+                bgcolor: 'white',
+                color: 'primary.main',
+                '&:hover': {
+                  bgcolor: 'grey.100',
+                },
+              }}
+            >
+              Добавить товар
+            </GradientButton>
+          </Box>
+        </Paper>
+      </motion.div>
 
-      <Grid container spacing={3}>
-        {/* Боковое меню */}
+      {/* Stats Cards */}
+      <Grid container spacing={3} sx={{mb: 4}}>
+        <Grid item xs={12} sm={6} md={3}>
+          <StatsCard
+            title="Продажи"
+            value={totalSales}
+            icon={<ShoppingCartIcon/>}
+            color="#10B981"
+            trend={12}
+            index={0}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <StatsCard
+            title="Доход"
+            value={`$${totalRevenue.toFixed(2)}`}
+            icon={<MoneyIcon/>}
+            color="#6366F1"
+            trend={8}
+            index={1}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <StatsCard
+            title="Просмотры"
+            value={totalViews}
+            icon={<VisibilityIcon/>}
+            color="#F59E0B"
+            trend={-3}
+            index={2}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <StatsCard
+            title="Товары"
+            value={products.length}
+            icon={<DashboardIcon/>}
+            color="#8B5CF6"
+            index={3}
+          />
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={4}>
+        {/* Navigation */}
         <Grid item xs={12} md={3}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
+          <Paper sx={{p: 2, borderRadius: 4}}>
+            <Typography variant="h6" fontWeight="bold" sx={{px: 2, py: 1}}>
               Навигация
             </Typography>
             <List>
-              <ListItem
-                component={Link}
-                to="/dashboard"
-                sx={{
-                  borderRadius: 1,
-                  bgcolor: tab === 0 ? 'action.selected' : 'transparent',
-                  '&:hover': { bgcolor: 'action.hover' },
-                }}
-              >
+              <ListItem component={Link} to="/dashboard" sx={{borderRadius: 3, mb: 0.5}}>
                 <ListItemIcon>
-                  <DashboardIcon color="primary" />
+                  <DashboardIcon color="primary"/>
                 </ListItemIcon>
-                <ListItemText primary="Обзор" />
+                <ListItemText primary="Обзор"/>
               </ListItem>
-              <ListItem
-                component={Link}
-                to="/dashboard/products"
-                sx={{
-                  borderRadius: 1,
-                  '&:hover': { bgcolor: 'action.hover' },
-                }}
-              >
+              <ListItem component={Link} to="/dashboard/products" sx={{borderRadius: 3, mb: 0.5}}>
                 <ListItemIcon>
-                  <ShoppingCartIcon color="primary" />
+                  <ShoppingCartIcon color="primary"/>
                 </ListItemIcon>
-                <ListItemText primary="Мои товары" />
+                <ListItemText primary="Мои товары"/>
               </ListItem>
-              <ListItem
-                component={Link}
-                to="/dashboard/orders"
-                sx={{
-                  borderRadius: 1,
-                  '&:hover': { bgcolor: 'action.hover' },
-                }}
-              >
+              <ListItem component={Link} to="/dashboard/orders" sx={{borderRadius: 3, mb: 0.5}}>
                 <ListItemIcon>
-                  <ReceiptIcon color="primary" />
+                  <ReceiptIcon color="primary"/>
                 </ListItemIcon>
-                <ListItemText primary="Заказы" />
+                <ListItemText primary="Заказы"/>
               </ListItem>
-              <ListItem
-                component={Link}
-                to="/dashboard/statistics"
-                sx={{
-                  borderRadius: 1,
-                  '&:hover': { bgcolor: 'action.hover' },
-                }}
-              >
+              <ListItem component={Link} to="/dashboard/statistics" sx={{borderRadius: 3, mb: 0.5}}>
                 <ListItemIcon>
-                  <BarChartIcon color="primary" />
+                  <BarChartIcon color="primary"/>
                 </ListItemIcon>
-                <ListItemText primary="Статистика" />
+                <ListItemText primary="Статистика"/>
               </ListItem>
-              <ListItem
-                component={Link}
-                to="/dashboard/disputes"
-                sx={{
-                  borderRadius: 1,
-                  '&:hover': { bgcolor: 'action.hover' },
-                }}
-              >
+              <ListItem component={Link} to="/dashboard/disputes" sx={{borderRadius: 3}}>
                 <ListItemIcon>
-                  <GavelIcon color="primary" />
+                  <GavelIcon color="primary"/>
                 </ListItemIcon>
-                <ListItemText primary="Споры" />
+                <ListItemText primary="Споры"/>
               </ListItem>
             </List>
           </Paper>
         </Grid>
 
-        {/* Основной контент */}
+        {/* Recent Products */}
         <Grid item xs={12} md={9}>
-          {/* Статистические карточки */}
-          <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={6} md={3}>
-              <Paper sx={{ p: 2, textAlign: 'center' }}>
-                <Typography variant="h5" color="primary">
-                  {totalSales}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Продажи
-                </Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Paper sx={{ p: 2, textAlign: 'center' }}>
-                <Typography variant="h5" color="primary">
-                  ${totalRevenue.toFixed(2)}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Доход
-                </Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Paper sx={{ p: 2, textAlign: 'center' }}>
-                <Typography variant="h5" color="primary">
-                  {totalViews}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Просмотры
-                </Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Paper sx={{ p: 2, textAlign: 'center' }}>
-                <Typography variant="h5" color="primary">
-                  {products.length}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Товары
-                </Typography>
-              </Paper>
-            </Grid>
-          </Grid>
-
-          {/* Вкладки */}
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-            <Tabs value={tab} onChange={(e, newValue) => setTab(newValue)}>
-              <Tab label="Последние товары" />
-              <Tab label="Последние заказы" />
-            </Tabs>
-          </Box>
-
-          {/* Вкладка товаров */}
-          {tab === 0 && (
-            <Paper>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2 }}>
-                <Typography variant="h6">
-                  Последние товары
-                </Typography>
-                <Button
-                  component={Link}
-                  to="/dashboard/products"
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  size="small"
-                >
-                  Добавить товар
-                </Button>
-              </Box>
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Название</TableCell>
-                      <TableCell>Статус</TableCell>
-                      <TableCell>Цена</TableCell>
-                      <TableCell>Продажи</TableCell>
-                      <TableCell>Просмотры</TableCell>
-                      <TableCell>Дата</TableCell>
+          <Paper sx={{p: 3, borderRadius: 4}}>
+            <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3}}>
+              <Typography variant="h6" fontWeight="bold">
+                Последние товары
+              </Typography>
+              <Button component={Link} to="/dashboard/products">
+                Показать все
+              </Button>
+            </Box>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Товар</TableCell>
+                    <TableCell>Статус</TableCell>
+                    <TableCell>Цена</TableCell>
+                    <TableCell align="right">Продажи</TableCell>
+                    <TableCell align="right">Просмотры</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {products.slice(0, 5).map((product) => (
+                    <TableRow key={product.id} hover>
+                      <TableCell>
+                        <Stack direction="row" spacing={2} alignItems="center">
+                          <Avatar sx={{bgcolor: 'primary.main', width: 40, height: 40}}>
+                            {product.name.charAt(0)}
+                          </Avatar>
+                          <Typography variant="body2" fontWeight="medium">
+                            {product.name}
+                          </Typography>
+                        </Stack>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={product.status}
+                          size="small"
+                          color={
+                            product.status === 'approved' ? 'success' :
+                              product.status === 'pending' ? 'warning' : 'default'
+                          }
+                          sx={{borderRadius: 6}}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {product.is_free ? 'Бесплатно' : `${product.cost} ${product.currency}`}
+                      </TableCell>
+                      <TableCell align="right">{product.sales_count}</TableCell>
+                      <TableCell align="right">{product.views_count}</TableCell>
                     </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {products.slice(0, 10).map((product) => (
-                      <TableRow key={product.id}>
-                        <TableCell>{product.name}</TableCell>
-                        <TableCell>
-                          <Chip
-                            label={getStatusLabel(product.status)}
-                            color={getStatusColor(product.status)}
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          {product.is_free ? 'Бесплатно' : `${product.cost} ${product.currency}`}
-                        </TableCell>
-                        <TableCell>{product.sales_count}</TableCell>
-                        <TableCell>{product.views_count}</TableCell>
-                        <TableCell>
-                          {format(new Date(product.created_at), 'dd.MM.yyyy')}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {products.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={6} align="center">
-                          У вас пока нет товаров
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              {products.length > 10 && (
-                <Box sx={{ p: 2, textAlign: 'center' }}>
-                  <Button component={Link} to="/dashboard/products">
-                    Показать все товары ({products.length})
-                  </Button>
-                </Box>
-              )}
-            </Paper>
-          )}
-
-          {/* Вкладка заказов */}
-          {tab === 1 && (
-            <Paper>
-              <Box sx={{ p: 2 }}>
-                <Typography variant="h6" gutterBottom>
-                  Последние заказы
-                </Typography>
-              </Box>
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Заказ</TableCell>
-                      <TableCell>Товар</TableCell>
-                      <TableCell>Покупатель</TableCell>
-                      <TableCell>Сумма</TableCell>
-                      <TableCell>Статус</TableCell>
-                      <TableCell>Дата</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {orders.slice(0, 10).map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell>#{order.id.substring(0, 8)}</TableCell>
-                        <TableCell>{order.product?.name || '-'}</TableCell>
-                        <TableCell>{order.buyer?.name || '-'}</TableCell>
-                        <TableCell>
-                          {order.total} {order.currency}
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            label={getStatusLabel(order.status)}
-                            color={getStatusColor(order.status)}
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          {format(new Date(order.created_at), 'dd.MM.yyyy')}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {orders.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={6} align="center">
-                          У вас пока нет заказов
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              {orders.length > 10 && (
-                <Box sx={{ p: 2, textAlign: 'center' }}>
-                  <Button component={Link} to="/dashboard/orders">
-                    Показать все заказы ({orders.length})
-                  </Button>
-                </Box>
-              )}
-            </Paper>
-          )}
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
         </Grid>
       </Grid>
     </Container>
