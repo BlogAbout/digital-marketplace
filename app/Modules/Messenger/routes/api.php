@@ -12,6 +12,7 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
     Route::post('chats/group', [ChatController::class, 'createGroupChat']);
     Route::post('chats/{id}/participants', [ChatController::class, 'addParticipant']);
     Route::delete('chats/{id}/participants', [ChatController::class, 'removeParticipant']);
+    Route::get('chats/{id}/participants', [ChatController::class, 'participants']);
 
     // Сообщения
     Route::get('chats/{chatId}/messages', [MessageController::class, 'index']);
