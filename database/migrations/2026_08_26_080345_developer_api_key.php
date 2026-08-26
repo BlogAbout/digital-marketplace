@@ -21,11 +21,14 @@ return new class extends Migration
             $table->timestamp('expires_at')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('user_id')
                 ->references('id')
                 ->on('user')
                 ->onDelete('cascade');
+
+            $table->index(['user_id', 'is_active']);
         });
     }
 

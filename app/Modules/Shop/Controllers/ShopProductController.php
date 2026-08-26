@@ -13,7 +13,12 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use OpenApi\Attributes as OA;
 
+#[OA\Tag(
+    name: 'Products',
+    description: 'API для работы с товарами'
+)]
 class ShopProductController extends Controller
 {
     use AuthorizesRequests;
@@ -22,9 +27,57 @@ class ShopProductController extends Controller
         private readonly ShopProductService $productService
     ) {}
 
-    /**
-     * Получить список товаров
-     */
+    #[OA\Get(
+        path: '/shop/products',
+        summary: 'Получить список товаров',
+        tags: ['Products'],
+        parameters: [
+            new OA\Parameter(
+                name: 'page',
+                description: 'Номер страницы',
+                in: 'query',
+                required: false,
+                schema: new OA\Schema(type: 'integer')
+            ),
+            new OA\Parameter(
+                name: 'per_page',
+                description: 'Количество элементов на странице',
+                in: 'query',
+                required: false,
+                schema: new OA\Schema(type: 'integer')
+            ),
+            new OA\Parameter(
+                name: 'category_id',
+                description: 'ID категории',
+                in: 'query',
+                required: false,
+                schema: new OA\Schema(type: 'string', format: 'uuid')
+            ),
+            new OA\Parameter(
+                name: 'search',
+                description: 'Поисковый запрос',
+                in: 'query',
+                required: false,
+                schema: new OA\Schema(type: 'string')
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Список товаров',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(
+                            property: 'data',
+                            type: 'array',
+                            items: new OA\Items(ref: '#/components/schemas/Product')
+                        )
+                    ],
+                    type: 'object'
+                )
+            )
+        ]
+    )]
     public function index(Request $request): AnonymousResourceCollection
     {
         $perPage = (int) $request->get('per_page', 15);
@@ -57,9 +110,31 @@ class ShopProductController extends Controller
         return ShopProductResource::collection($products);
     }
 
-    /**
-     * Получить товар
-     */
+    #[OA\Get(
+        path: '/shop/products/{id}',
+        summary: 'Получить товар по ID',
+        tags: ['Products'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                description: 'ID товара',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'string', format: 'uuid')
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Информация о товаре',
+                content: new OA\JsonContent(ref: '#/components/schemas/Product')
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Товар не найден'
+            )
+        ]
+    )]
     public function show(string $id): ShopProductResource
     {
         $product = $this->productService->getProductWithCache($id);
@@ -70,9 +145,38 @@ class ShopProductController extends Controller
         return new ShopProductResource($product);
     }
 
-    /**
-     * Создать товар
-     */
+    #[OA\Post(
+        path: '/shop/products',
+        summary: 'Создать товар',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['category_id', 'name', 'description'],
+                properties: [
+                    new OA\Property(property: 'category_id', type: 'string', format: 'uuid'),
+                    new OA\Property(property: 'name', type: 'string'),
+                    new OA\Property(property: 'description', type: 'string'),
+                    new OA\Property(property: 'currency', type: 'string', default: 'USD'),
+                    new OA\Property(property: 'is_free', type: 'boolean', default: false),
+                    new OA\Property(property: 'cost', type: 'number', format: 'float')
+                ],
+                type: 'object'
+            )
+        ),
+        tags: ['Products'],
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Товар создан',
+                content: new OA\JsonContent(ref: '#/components/schemas/Product')
+            ),
+            new OA\Response(
+                response: 422,
+                description: 'Ошибка валидации'
+            )
+        ]
+    )]
     public function store(CreateProductRequest $request): JsonResponse
     {
         /** @var User $user */
