@@ -1,7 +1,8 @@
-import {BrowserRouter as Router, Navigate, Route, Routes} from 'react-router-dom';
-import {createTheme, CssBaseline, ThemeProvider} from '@mui/material';
-import {useAuthStore} from './stores/authStore';
-import {useThemeStore} from './stores/themeStore';
+import { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
+import { useAuthStore } from './stores/authStore';
+import { useThemeStore } from './stores/themeStore';
 import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
@@ -14,11 +15,12 @@ import MessengerPage from './pages/MessengerPage';
 import ProfilePage from './pages/ProfilePage';
 import DashboardPage from './pages/DashboardPage';
 import SellerProductsPage from './pages/SellerProductsPage';
-import {useEffect} from 'react';
+import StatisticsPage from './pages/StatisticsPage';
+import SupportPage from './pages/SupportPage';
 
 function App() {
-  const {token, fetchUser} = useAuthStore();
-  const {theme} = useThemeStore();
+  const { token, fetchUser } = useAuthStore();
+  const { theme } = useThemeStore();
 
   useEffect(() => {
     if (token) {
@@ -37,34 +39,42 @@ function App() {
 
   return (
     <ThemeProvider theme={muiTheme}>
-      <CssBaseline/>
+      <CssBaseline />
       <Router>
         <Routes>
-          <Route path="/login" element={<LoginPage/>}/>
-          <Route path="/register" element={<RegisterPage/>}/>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
-          <Route element={<Layout/>}>
-            <Route path="/" element={<HomePage/>}/>
-            <Route path="/products" element={<ProductsPage/>}/>
-            <Route path="/products/:slug" element={<ProductDetailPage/>}/>
-            <Route path="/blog" element={<BlogPage/>}/>
-            <Route path="/blog/:slug" element={<BlogPostDetailPage/>}/>
+          <Route element={<Layout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/products/:slug" element={<ProductDetailPage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/:slug" element={<BlogPostDetailPage />} />
 
             <Route path="/messenger" element={
-              token ? <MessengerPage/> : <Navigate to="/login"/>
-            }/>
+              token ? <MessengerPage /> : <Navigate to="/login" />
+            } />
 
             <Route path="/profile" element={
-              token ? <ProfilePage/> : <Navigate to="/login"/>
-            }/>
+              token ? <ProfilePage /> : <Navigate to="/login" />
+            } />
 
             <Route path="/dashboard" element={
-              token ? <DashboardPage/> : <Navigate to="/login"/>
-            }/>
+              token ? <DashboardPage /> : <Navigate to="/login" />
+            } />
 
             <Route path="/dashboard/products" element={
-              token ? <SellerProductsPage/> : <Navigate to="/login"/>
-            }/>
+              token ? <SellerProductsPage /> : <Navigate to="/login" />
+            } />
+
+            <Route path="/dashboard/statistics" element={
+              token ? <StatisticsPage /> : <Navigate to="/login" />
+            } />
+
+            <Route path="/support" element={
+              token ? <SupportPage /> : <Navigate to="/login" />
+            } />
           </Route>
         </Routes>
       </Router>
