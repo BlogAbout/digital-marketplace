@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Factories;
+namespace Database\Factories\Modules\Shop\Models;
 
 use App\Modules\Shop\Models\ShopCategory;
 use App\Modules\Shop\Models\ShopProduct;
@@ -32,5 +32,13 @@ class ShopProductFactory extends Factory
             'is_link_domain' => false,
             'access_update' => 'free',
         ];
+    }
+
+    public function approved(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => 'approved',
+            'approved_at' => now(),
+        ]);
     }
 }

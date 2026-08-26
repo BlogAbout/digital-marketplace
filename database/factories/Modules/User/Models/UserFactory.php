@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Factories;
+namespace Database\Factories\Modules\User\Models;
 
 use App\Modules\User\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -30,5 +30,19 @@ class UserFactory extends Factory
             ]),
             'remember_token' => Str::random(10),
         ];
+    }
+
+    public function unverified(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'email_verified_at' => null,
+        ]);
+    }
+
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'admin',
+        ]);
     }
 }

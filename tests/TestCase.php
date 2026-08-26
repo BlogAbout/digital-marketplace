@@ -3,17 +3,16 @@
 namespace Tests;
 
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 
 abstract class TestCase extends BaseTestCase
 {
-    use CreatesApplication, RefreshDatabase, WithFaker;
+    use CreatesApplication;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->withoutExceptionHandling();
+        // Отключаем SecurityHeaders в тестах
+        $this->withoutMiddleware(\App\Http\Middleware\SecurityHeaders::class);
     }
 }
