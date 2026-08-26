@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
-import { notificationService } from '../services/notificationService';
-import { useAuthStore } from '../stores/authStore';
-import echo from '../services/echo';
-import type { Notification } from '../types';
+import { notificationService } from '@/services/notificationService';
+import { useAuthStore } from '@/stores/authStore';
+import { getEcho } from '@/services/echo';
+import type { Notification } from '@/types';
 
 export function useNotifications() {
   const { user } = useAuthStore();
@@ -43,30 +43,37 @@ export function useNotifications() {
   useEffect(() => {
     if (!user) return;
 
-    const channel = echo.private(`user.${user.id}`);
+    const echo = getEcho();
+    if (!echo) return;
 
-    channel.listen('.toast.notification', (e: any) => {
-      const newNotification: Notification = {
-        id: e.id,
-        user_id: user.id,
-        type: e.type || 'toast',
-        title: e.title,
-        message: e.message,
-        data: e.data,
-        icon: e.icon,
-        url: e.url,
-        read_at: null,
-        created_at: e.created_at,
-        updated_at: e.created_at,
+    try {
+      const channel = echo.private(`user.${user.id}`);
+
+      channel.listen('.toast.notification', (e: any) => {
+        const newNotification: Notification = {
+          id: e.id,
+          user_id: user.id,
+          type: e.type || 'toast',
+          title: e.title,
+          message: e.message,
+          data: e.data,
+          icon: e.icon,
+          url: e.url,
+          read_at: null,
+          created_at: e.created_at,
+          updated_at: e.created_at,
+        };
+
+        setNotifications((prev) => [newNotification, ...prev]);
+        setUnreadCount((prev) => prev + 1);
+      });
+
+      return () => {
+        echo.leave(`user.${user.id}`);
       };
-
-      setNotifications((prev) => [newNotification, ...prev]);
-      setUnreadCount((prev) => prev + 1);
-    });
-
-    return () => {
-      echo.leave(`user.${user.id}`);
-    };
+    } catch (error) {
+      console.error('Error subscribing to notifications:', error);
+    }
   }, [user]);
 
   const markAsRead = useCallback(async (id: string) => {

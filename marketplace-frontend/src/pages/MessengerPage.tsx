@@ -110,7 +110,7 @@ export default function MessengerPage() {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
         <CircularProgress/>
       </Box>
     );
@@ -225,7 +225,7 @@ export default function MessengerPage() {
                 </Box>
               </>
             ) : (
-              <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
                 <Typography color="text.secondary">
                   Выберите чат для начала общения
                 </Typography>

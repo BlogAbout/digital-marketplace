@@ -5,16 +5,18 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint . --ext ts,tsx",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\""
   },
   "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
-    "@hookform/resolvers": "^5.9.1",
-    "@mui/icons-material": "^9.3.1",
-    "@mui/material": "^9.3.1",
+"@emotion/react": "^11.14.0",
+"@emotion/styled": "^11.14.1",
+"@hookform/resolvers": "^5.9.1",
+"@mui/icons-material": "^9.3.1",
+"@mui/material": "^9.3.1",
     "axios": "^1.19.0",
     "date-fns": "^4.4.0",
     "i18next": "^26.4.0",

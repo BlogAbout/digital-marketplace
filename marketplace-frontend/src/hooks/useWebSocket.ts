@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
-import echo from '../services/echo';
-import type { Message, Notification } from '../types';
+import { getEcho } from '@/services/echo';
+import type { Message, Notification } from '@/types';
 
 interface WebSocketOptions {
   onMessage?: (message: Message) => void;
@@ -21,45 +21,54 @@ export function useWebSocket(options: WebSocketOptions) {
   useEffect(() => {
     if (!userId) return;
 
+    const echo = getEcho();
+    if (!echo) return;
+
     // Подписка на личные уведомления
-    const userChannel = echo.private(`user.${userId}`);
+    try {
+      const userChannel = echo.private(`user.${userId}`);
 
-    userChannel.listen('.toast.notification', (e: any) => {
-      callbacksRef.current.onNotification?.(e);
-    });
+      userChannel.listen('.toast.notification', (e: any) => {
+        callbacksRef.current.onNotification?.(e);
+      });
 
-    userChannel.listen('.chat.created', (e: any) => {
-      callbacksRef.current.onChatCreated?.(e);
-    });
+      userChannel.listen('.chat.created', (e: any) => {
+        callbacksRef.current.onChatCreated?.(e);
+      });
 
-    return () => {
-      echo.leave(`user.${userId}`);
-    };
+      return () => {
+        echo.leave(`user.${userId}`);
+      };
+    } catch (error) {
+      console.error('Error subscribing to user channel:', error);
+    }
   }, [userId]);
 
   useEffect(() => {
     if (!chatId) return;
 
+    const echo = getEcho();
+    if (!echo) return;
+
     // Подписка на чат
-    const chatChannel = echo.private(`chat.${chatId}`);
+    try {
+      const chatChannel = echo.private(`chat.${chatId}`);
 
-    chatChannel.listen('.message.sent', (e: any) => {
-      callbacksRef.current.onMessage?.(e);
-    });
+      chatChannel.listen('.message.sent', (e: any) => {
+        callbacksRef.current.onMessage?.(e);
+      });
 
-    chatChannel.listen('.message.updated', (e: any) => {
-      callbacksRef.current.onMessage?.(e);
-    });
+      chatChannel.listen('.message.updated', (e: any) => {
+        callbacksRef.current.onMessage?.(e);
+      });
 
-    return () => {
-      echo.leave(`chat.${chatId}`);
-    };
+      return () => {
+        echo.leave(`chat.${chatId}`);
+      };
+    } catch (error) {
+      console.error('Error subscribing to chat channel:', error);
+    }
   }, [chatId]);
 
-  const sendMessage = useCallback((chatId: string, message: Message) => {
-    // Отправка через WebSocket (если нужно)
-    // Основная отправка через REST API
-  }, []);
-
-  return { sendMessage };
+  return {};
 }
