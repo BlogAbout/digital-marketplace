@@ -16,6 +16,7 @@ RUN apk add --no-cache \
     autoconf \
     g++ \
     make \
+    gmp-dev \
     $PHPIZE_DEPS \
     linux-headers
 
@@ -25,7 +26,8 @@ RUN docker-php-ext-install \
     mbstring \
     xml \
     bcmath \
-    opcache
+    opcache \
+    gmp
 
 # Установка zip
 RUN docker-php-ext-configure zip \
