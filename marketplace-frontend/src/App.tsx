@@ -3,24 +3,28 @@ import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import { useAuthStore } from './stores/authStore';
 import { useThemeStore } from './stores/themeStore';
 import Layout from './components/Layout';
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import ProductsPage from './pages/ProductsPage';
-import ProductDetailPage from './pages/ProductDetailPage';
-import BlogPage from './pages/BlogPage';
-import BlogPostDetailPage from './pages/BlogPostDetailPage';
-import MessengerPage from './pages/MessengerPage';
-import ProfilePage from './pages/ProfilePage';
-import DashboardPage from './pages/DashboardPage';
-import SellerProductsPage from './pages/SellerProductsPage';
-import StatisticsPage from './pages/StatisticsPage';
-import SupportPage from './pages/SupportPage';
-import SupportChatPage from './pages/SupportChatPage';
-import DisputesPage from './pages/DisputesPage';
-import OrdersPage from './pages/OrdersPage';
-import SettingsPage from './pages/SettingsPage';
+import { lazyLoad } from './components/LazyLoad';
 import { useEffect } from 'react';
+
+// Lazy loaded pages
+const HomePage = lazyLoad(() => import('./pages/HomePage'));
+const LoginPage = lazyLoad(() => import('./pages/LoginPage'));
+const RegisterPage = lazyLoad(() => import('./pages/RegisterPage'));
+const ProductsPage = lazyLoad(() => import('./pages/ProductsPage'));
+const ProductDetailPage = lazyLoad(() => import('./pages/ProductDetailPage'));
+const BlogPage = lazyLoad(() => import('./pages/BlogPage'));
+const BlogPostDetailPage = lazyLoad(() => import('./pages/BlogPostDetailPage'));
+const MessengerPage = lazyLoad(() => import('./pages/MessengerPage'));
+const ProfilePage = lazyLoad(() => import('./pages/ProfilePage'));
+const DashboardPage = lazyLoad(() => import('./pages/DashboardPage'));
+const SellerProductsPage = lazyLoad(() => import('./pages/SellerProductsPage'));
+const StatisticsPage = lazyLoad(() => import('./pages/StatisticsPage'));
+const SupportPage = lazyLoad(() => import('./pages/SupportPage'));
+const SupportChatPage = lazyLoad(() => import('./pages/SupportChatPage'));
+const DisputesPage = lazyLoad(() => import('./pages/DisputesPage'));
+const OrdersPage = lazyLoad(() => import('./pages/OrdersPage'));
+const SettingsPage = lazyLoad(() => import('./pages/SettingsPage'));
+const ApiKeysPage = lazyLoad(() => import('./pages/ApiKeysPage'));
 
 function App() {
   const { token, fetchUser } = useAuthStore();
@@ -94,6 +98,10 @@ function App() {
 
             <Route path="/settings" element={
               token ? <SettingsPage /> : <Navigate to="/login" />
+            } />
+
+            <Route path="/settings/api-keys" element={
+              token ? <ApiKeysPage /> : <Navigate to="/login" />
             } />
           </Route>
         </Routes>
