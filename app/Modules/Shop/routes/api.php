@@ -12,7 +12,7 @@ Route::get('shop/products', [ShopProductController::class, 'index']);
 Route::get('shop/products/{id}', [ShopProductController::class, 'show']);
 
 // Защищенные маршруты
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
     // Категории (только для админов и модераторов)
     Route::post('shop/categories', [ShopCategoryController::class, 'store'])
         ->middleware('role:admin,moderator');

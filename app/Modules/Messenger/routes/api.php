@@ -4,7 +4,7 @@ use App\Modules\Messenger\Controllers\ChatController;
 use App\Modules\Messenger\Controllers\MessageController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
     // Чаты
     Route::get('chats', [ChatController::class, 'index']);
     Route::get('chats/{id}', [ChatController::class, 'show']);

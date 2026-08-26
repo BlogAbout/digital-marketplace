@@ -11,7 +11,7 @@ Route::get('posts', [BlogPostController::class, 'index']);
 Route::get('posts/{id}', [BlogPostController::class, 'show']);
 
 // Защищенные маршруты
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
     Route::post('blog', [BlogController::class, 'store']);
     Route::put('blog/{id}', [BlogController::class, 'update']);
     Route::delete('blog/{id}', [BlogController::class, 'destroy']);

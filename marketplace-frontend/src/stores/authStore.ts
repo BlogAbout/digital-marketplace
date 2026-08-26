@@ -1,26 +1,21 @@
 import { create } from 'zustand';
 import axios from 'axios';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-}
+import { securityService } from '../services/securityService';
 
 interface AuthState {
-  user: User | null;
+  user: any;
   token: string | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (data: any) => Promise<void>;
   logout: () => Promise<void>;
   fetchUser: () => Promise<void>;
+  checkTokenExpiration: () => boolean;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
-  token: localStorage.getItem('token'),
+  token: localStorage.getItem('token') || sessionStorage.getItem('token'),
   isLoading: false,
 
   login: async (email: string, password: string) => {
@@ -28,7 +23,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const response = await axios.post('/api/auth/login', { email, password });
       const { token, user } = response.data;
-      localStorage.setItem('token', token);
+      securityService.setSecureToken(token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       set({ token, user, isLoading: false });
     } catch (error) {
@@ -42,7 +37,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const response = await axios.post('/api/auth/register', data);
       const { token, user } = response.data;
-      localStorage.setItem('token', token);
+      securityService.setSecureToken(token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       set({ token, user, isLoading: false });
     } catch (error) {
@@ -55,20 +50,29 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       await axios.post('/api/auth/logout');
     } finally {
-      localStorage.removeItem('token');
+      securityService.clearAllData();
       delete axios.defaults.headers.common['Authorization'];
       set({ user: null, token: null });
     }
   },
 
   fetchUser: async () => {
+    const token = get().token;
+    if (!token || securityService.isTokenExpired(token)) {
+      get().logout();
+      return;
+    }
+
     try {
       const response = await axios.get('/api/auth/me');
       set({ user: response.data });
     } catch (error) {
-      localStorage.removeItem('token');
-      delete axios.defaults.headers.common['Authorization'];
-      set({ user: null, token: null });
+      get().logout();
     }
+  },
+
+  checkTokenExpiration: () => {
+    const token = get().token;
+    return token ? !securityService.isTokenExpired(token) : false;
   },
 }));

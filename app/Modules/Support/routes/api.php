@@ -3,7 +3,7 @@
 use App\Modules\Support\Controllers\SupportTicketController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
     // Пользовательские маршруты
     Route::get('support/tickets', [SupportTicketController::class, 'index']);
     Route::get('support/tickets/{id}', [SupportTicketController::class, 'show']);

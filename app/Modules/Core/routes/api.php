@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('search', [SearchController::class, 'search']);
 
 // Админские маршруты
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
     Route::post('search/reindex', [SearchController::class, 'reindex'])
         ->middleware('role:admin');
 });

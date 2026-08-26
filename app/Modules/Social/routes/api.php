@@ -10,7 +10,7 @@ Route::get('user/{userId}/followers', [SubscriptionController::class, 'followers
 Route::get('user/{userId}/following', [SubscriptionController::class, 'following']);
 
 // Защищенные маршруты
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
     // Подписки
     Route::post('user/{userId}/subscribe', [SubscriptionController::class, 'subscribe']);
     Route::delete('user/{userId}/unsubscribe', [SubscriptionController::class, 'unsubscribe']);
