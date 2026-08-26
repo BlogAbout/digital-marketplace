@@ -14,7 +14,7 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'id' => (string) UuidV7::generate(), // Добавьте UUID
+            'id' => (string) UuidV7::generate(),
             'name' => $this->faker->name(),
             'email' => $this->faker->unique()->safeEmail(),
             'email_verified_at' => now(),
@@ -23,19 +23,12 @@ class UserFactory extends Factory
             'is_block' => false,
             'role' => 'user',
             'balance' => 0,
-            'settings' => [
+            'settings' => json_encode([
                 'theme' => 'light',
                 'timezone' => 'UTC',
                 'locale' => 'ru',
-            ],
+            ]),
             'remember_token' => Str::random(10),
         ];
-    }
-
-    public function unverified(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
     }
 }

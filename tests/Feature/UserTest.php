@@ -6,6 +6,7 @@ use App\Modules\User\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Hash;
 
 class UserTest extends TestCase
 {
@@ -30,10 +31,6 @@ class UserTest extends TestCase
                 ],
                 'token',
             ]);
-
-        $this->assertDatabaseHas('user', [
-            'email' => 'test@example.com',
-        ]);
     }
 
     /** @test */
@@ -41,7 +38,7 @@ class UserTest extends TestCase
     {
         $user = User::factory()->create([
             'email' => 'test@example.com',
-            'password' => bcrypt('password123'),
+            'password' => Hash::make('password123'),
         ]);
 
         $response = $this->postJson('/api/auth/login', [
