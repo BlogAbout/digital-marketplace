@@ -1,35 +1,35 @@
+// src/pages/SellerProductsPage.tsx
 import { useEffect, useState } from 'react';
 import {
   Container,
   Typography,
-  Button,
-  Box,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Paper,
+  Box,
+  Stack,
+  Avatar,
   IconButton,
-  Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  CircularProgress,
-  Alert,
+  Tooltip,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
 import { productService } from '../services/productService';
 import type { Product, Category } from '../types';
+import { motion } from 'framer-motion';
+import PageHeader from '../components/PageHeader';
+import DataTable from '../components/DataTable';
+import StatusBadge from '../components/StatusBadge';
+import SkeletonLoader from '../components/SkeletonLoader';
+import EnhancedEmptyState from '../components/EnhancedEmptyState';
+import ConfirmDialog from '../components/ConfirmDialog';
+import Modal from '../components/Modal';
+import GradientButton from '../components/GradientButton';
+import FloatingActionButton from '../components/FloatingActionButton';
+import { useToast } from '../components/ToastProvider';
+import {
+  ShoppingCart as ShoppingCartIcon,
+  Add as AddIcon,
+} from '@mui/icons-material';
+import { TextField, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 
 export default function SellerProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -37,6 +37,8 @@ export default function SellerProductsPage() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -46,6 +48,7 @@ export default function SellerProductsPage() {
     is_free: false,
   });
   const [error, setError] = useState('');
+  const { showToast } = useToast();
 
   useEffect(() => {
     loadProducts();
@@ -58,7 +61,7 @@ export default function SellerProductsPage() {
       const response = await productService.getProducts({ per_page: 100 });
       setProducts(response.data);
     } catch (error) {
-      console.error('Error loading products:', error);
+      showToast('Ошибка при загрузке товаров', 'error');
     } finally {
       setLoading(false);
     }
@@ -98,12 +101,6 @@ export default function SellerProductsPage() {
     setDialogOpen(true);
   };
 
-  const handleCloseDialog = () => {
-    setDialogOpen(false);
-    setEditingProduct(null);
-    setError('');
-  };
-
   const handleSaveProduct = async () => {
     try {
       setError('');
@@ -120,111 +117,177 @@ export default function SellerProductsPage() {
 
       if (editingProduct) {
         await productService.updateProduct(editingProduct.id, formDataObj);
+        showToast('Товар успешно обновлен', 'success');
       } else {
         await productService.createProduct(formDataObj);
+        showToast('Товар успешно создан', 'success');
       }
 
-      handleCloseDialog();
+      setDialogOpen(false);
       loadProducts();
     } catch (error: any) {
       setError(error.response?.data?.message || 'Ошибка при сохранении товара');
     }
   };
 
-  const handleDeleteProduct = async (product: Product) => {
-    if (window.confirm(`Вы уверены, что хотите удалить товар "${product.name}"?`)) {
-      try {
-        await productService.deleteProduct(product.id);
-        loadProducts();
-      } catch (error) {
-        console.error('Error deleting product:', error);
-      }
+  const handleDeleteProduct = async () => {
+    if (!productToDelete) return;
+
+    try {
+      await productService.deleteProduct(productToDelete.id);
+      showToast('Товар успешно удален', 'success');
+      setDeleteDialogOpen(false);
+      setProductToDelete(null);
+      loadProducts();
+    } catch (error) {
+      showToast('Ошибка при удалении товара', 'error');
     }
   };
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+  const productColumns = [
+    {
+      key: 'name',
+      label: 'Товар',
+      sortable: true,
+      render: (product: Product) => (
+        <Stack direction="row" spacing={2} alignItems="center">
+          <Avatar sx={{ bgcolor: 'primary.main', width: 40, height: 40 }}>
+            {product.name.charAt(0)}
+          </Avatar>
+          <Typography variant="body2" fontWeight="medium">
+            {product.name}
+          </Typography>
+        </Stack>
+      ),
+    },
+    {
+      key: 'category',
+      label: 'Категория',
+      render: (product: Product) => (
+        <Typography variant="body2">
+          {product.category?.name || '-'}
+        </Typography>
+      ),
+    },
+    {
+      key: 'cost',
+      label: 'Цена',
+      sortable: true,
+      render: (product: Product) => (
+        <Typography variant="body2">
+          {product.is_free ? 'Бесплатно' : `${product.cost} ${product.currency}`}
+        </Typography>
+      ),
+    },
+    {
+      key: 'status',
+      label: 'Статус',
+      sortable: true,
+      render: (product: Product) => <StatusBadge status={product.status} />,
+    },
+    {
+      key: 'sales_count',
+      label: 'Продажи',
+      align: 'right' as const,
+      sortable: true,
+    },
+    {
+      key: 'actions',
+      label: 'Действия',
+      align: 'right' as const,
+      render: (product: Product) => (
+        <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+          <Tooltip title="Редактировать">
+            <IconButton size="small" onClick={() => handleOpenDialog(product)}>
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Удалить">
+            <IconButton
+              size="small"
+              onClick={() => {
+                setProductToDelete(product);
+                setDeleteDialogOpen(true);
+              }}
+              color="error"
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Stack>
+      ),
+    },
+  ];
 
   return (
-    <Container>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h4">Мои товары</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog()}
-        >
-          Добавить товар
-        </Button>
-      </Box>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      <PageHeader
+        title="Мои товары"
+        subtitle="Управление вашими товарами"
+        icon={<ShoppingCartIcon />}
+        actions={
+          <GradientButton
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenDialog()}
+          >
+            Добавить товар
+          </GradientButton>
+        }
+      />
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Название</TableCell>
-              <TableCell>Категория</TableCell>
-              <TableCell>Цена</TableCell>
-              <TableCell>Статус</TableCell>
-              <TableCell>Продажи</TableCell>
-              <TableCell>Действия</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {products.map((product) => (
-              <TableRow key={product.id}>
-                <TableCell>{product.name}</TableCell>
-                <TableCell>{product.category?.name || '-'}</TableCell>
-                <TableCell>
-                  {product.is_free ? 'Бесплатно' : `${product.cost} ${product.currency}`}
-                </TableCell>
-                <TableCell>
-                  <Chip
-                    label={product.status}
-                    color={
-                      product.status === 'approved' ? 'success' :
-                        product.status === 'pending' ? 'warning' :
-                          product.status === 'rejected' ? 'error' : 'default'
-                    }
-                    size="small"
-                  />
-                </TableCell>
-                <TableCell>{product.sales_count}</TableCell>
-                <TableCell>
-                  <IconButton onClick={() => handleOpenDialog(product)}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton onClick={() => handleDeleteProduct(product)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-            {products.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={6} align="center">
-                  У вас пока нет товаров
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      {loading ? (
+        <SkeletonLoader type="table" count={6} />
+      ) : products.length > 0 ? (
+        <DataTable
+          columns={productColumns}
+          data={products}
+          emptyState={
+            <EnhancedEmptyState
+              icon={<ShoppingCartIcon sx={{ fontSize: 80, color: 'primary.main' }} />}
+              title="Нет товаров"
+              description="Создайте свой первый товар"
+              primaryAction={{
+                label: 'Добавить товар',
+                onClick: () => handleOpenDialog(),
+                icon: <AddIcon />,
+              }}
+            />
+          }
+        />
+      ) : (
+        <EnhancedEmptyState
+          icon={<ShoppingCartIcon sx={{ fontSize: 80, color: 'primary.main' }} />}
+          title="Нет товаров"
+          description="Создайте свой первый товар для продажи"
+          primaryAction={{
+            label: 'Добавить товар',
+            onClick: () => handleOpenDialog(),
+            icon: <AddIcon />,
+          }}
+        />
+      )}
 
-      <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>
-          {editingProduct ? 'Редактировать товар' : 'Добавить товар'}
-        </DialogTitle>
-        <DialogContent>
+      <Modal
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        title={editingProduct ? 'Редактировать товар' : 'Добавить товар'}
+        maxWidth="md"
+        actions={
+          <>
+            <button onClick={() => setDialogOpen(false)} className="btn btn-outline">
+              Отмена
+            </button>
+            <GradientButton onClick={handleSaveProduct}>
+              Сохранить
+            </GradientButton>
+          </>
+        }
+      >
+        <Box sx={{ mt: 2 }}>
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Typography color="error" sx={{ mb: 2 }}>
               {error}
-            </Alert>
+            </Typography>
           )}
           <TextField
             fullWidth
@@ -292,14 +355,27 @@ export default function SellerProductsPage() {
               required
             />
           )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Отмена</Button>
-          <Button variant="contained" onClick={handleSaveProduct}>
-            Сохранить
-          </Button>
-        </DialogActions>
-      </Dialog>
+        </Box>
+      </Modal>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        title="Удалить товар"
+        message={`Вы уверены, что хотите удалить товар "${productToDelete?.name}"?`}
+        type="warning"
+        confirmLabel="Да, удалить"
+        cancelLabel="Отмена"
+        onConfirm={handleDeleteProduct}
+        onCancel={() => {
+          setDeleteDialogOpen(false);
+          setProductToDelete(null);
+        }}
+      />
+
+      <FloatingActionButton
+        onClick={() => handleOpenDialog()}
+        tooltip="Добавить товар"
+      />
     </Container>
   );
 }

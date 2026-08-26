@@ -1,3 +1,4 @@
+// src/pages/StatisticsPage.tsx
 import { useEffect, useState } from 'react';
 import {
   Container,
@@ -5,17 +6,14 @@ import {
   Paper,
   Grid,
   Box,
-  CircularProgress,
-  Alert,
   Select,
   MenuItem,
   FormControl,
   InputLabel,
-  Stack,
 } from '@mui/material';
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   BarChart,
   Bar,
   XAxis,
@@ -27,20 +25,22 @@ import {
   PieChart,
   Pie,
   Cell,
-  AreaChart,
-  Area,
 } from 'recharts';
 import { useAuthStore } from '../stores/authStore';
 import { statisticsService } from '../services/statisticsService';
 import type { SellerStatistics } from '../types';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
-import StatsCard from '../components/StatsCard';
+import StatCardWithChart from '../components/StatCardWithChart';
+import SkeletonLoader from '../components/SkeletonLoader';
+import PageHeader from '../components/PageHeader';
+import { useToast } from '../components/ToastProvider';
 import {
   TrendingUp as TrendingUpIcon,
   ShoppingCart as ShoppingCartIcon,
   Visibility as VisibilityIcon,
   AttachMoney as MoneyIcon,
+  BarChart as BarChartIcon,
 } from '@mui/icons-material';
 
 const COLORS = ['#6366F1', '#8B5CF6', '#06B6D4', '#10B981', '#F59E0B', '#EF4444'];
@@ -49,8 +49,8 @@ export default function StatisticsPage() {
   const { user } = useAuthStore();
   const [statistics, setStatistics] = useState<SellerStatistics | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [period, setPeriod] = useState('30');
+  const { showToast } = useToast();
 
   useEffect(() => {
     loadStatistics();
@@ -62,7 +62,7 @@ export default function StatisticsPage() {
       const data = await statisticsService.getSellerStatistics();
       setStatistics(data);
     } catch (error) {
-      setError('Ошибка при загрузке статистики');
+      showToast('Ошибка при загрузке статистики', 'error');
     } finally {
       setLoading(false);
     }
@@ -70,18 +70,14 @@ export default function StatisticsPage() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <CircularProgress size={48} />
-      </Box>
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <SkeletonLoader type="card" count={4} />
+      </Container>
     );
   }
 
-  if (error || !statistics) {
-    return (
-      <Container>
-        <Alert severity="error">{error}</Alert>
-      </Container>
-    );
+  if (!statistics) {
+    return null;
   }
 
   const chartData = statistics.daily_statistics.map((stat) => ({
@@ -96,73 +92,70 @@ export default function StatisticsPage() {
     value: product.sales_count || 0,
   }));
 
+  const sparklineData = chartData.map(d => ({ value: d.sales }));
+
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h4" fontWeight="bold">
-          Статистика
-        </Typography>
-        <FormControl sx={{ minWidth: 150 }}>
-          <InputLabel>Период</InputLabel>
-          <Select
-            value={period}
-            onChange={(e) => setPeriod(e.target.value)}
-            label="Период"
-            size="small"
-          >
-            <MenuItem value="7">7 дней</MenuItem>
-            <MenuItem value="30">30 дней</MenuItem>
-            <MenuItem value="90">90 дней</MenuItem>
-            <MenuItem value="365">Год</MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
+      <PageHeader
+        title="Статистика"
+        subtitle="Аналитика ваших продаж"
+        icon={<BarChartIcon />}
+        actions={
+          <FormControl sx={{ minWidth: 150 }} size="small">
+            <InputLabel>Период</InputLabel>
+            <Select value={period} onChange={(e) => setPeriod(e.target.value)} label="Период">
+              <MenuItem value="7">7 дней</MenuItem>
+              <MenuItem value="30">30 дней</MenuItem>
+              <MenuItem value="90">90 дней</MenuItem>
+              <MenuItem value="365">Год</MenuItem>
+            </Select>
+          </FormControl>
+        }
+      />
 
-      {/* Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={3}>
-          <StatsCard
+          <StatCardWithChart
             title="Общий доход"
             value={`$${statistics.total_revenue.toFixed(2)}`}
             icon={<MoneyIcon />}
             color="#6366F1"
+            data={sparklineData}
             trend={15}
-            index={0}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <StatsCard
+          <StatCardWithChart
             title="Продажи"
             value={statistics.total_sales}
             icon={<ShoppingCartIcon />}
             color="#10B981"
+            data={sparklineData}
             trend={8}
-            index={1}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <StatsCard
+          <StatCardWithChart
             title="Просмотры"
             value={statistics.total_views}
             icon={<VisibilityIcon />}
             color="#F59E0B"
+            data={sparklineData}
             trend={-2}
-            index={2}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <StatsCard
+          <StatCardWithChart
             title="Конверсия"
             value={`${statistics.conversion_rate}%`}
             icon={<TrendingUpIcon />}
             color="#8B5CF6"
+            data={sparklineData}
             trend={5}
-            index={3}
           />
         </Grid>
       </Grid>
 
-      {/* Charts */}
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
           <motion.div
@@ -187,14 +180,7 @@ export default function StatisticsPage() {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Area
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="#6366F1"
-                    fillOpacity={1}
-                    fill="url(#revenueGradient)"
-                    name="Доход"
-                  />
+                  <Area type="monotone" dataKey="revenue" stroke="#6366F1" fill="url(#revenueGradient)" name="Доход" />
                 </AreaChart>
               </ResponsiveContainer>
             </Paper>
@@ -233,7 +219,7 @@ export default function StatisticsPage() {
           >
             <Paper sx={{ p: 3, borderRadius: 4 }}>
               <Typography variant="h6" fontWeight="bold" gutterBottom>
-                Топ товаров по продажам
+                Топ товаров
               </Typography>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={topProductsData} layout="vertical">
@@ -266,7 +252,7 @@ export default function StatisticsPage() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={(entry) => `${entry.name} (${entry.value})`}
+                    label={(entry) => entry.name}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"

@@ -1,33 +1,15 @@
+// src/pages/SupportPage.tsx
 import { useEffect, useState } from 'react';
 import {
   Container,
   Typography,
   Paper,
   Box,
-  Button,
   TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  List,
-  ListItem,
-  ListItemText,
-  Chip,
-  CircularProgress,
-  Alert,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   Grid,
-  Divider,
   Stack,
   Avatar,
-  IconButton,
-  Tooltip,
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
 import SendIcon from '@mui/icons-material/Send';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import { supportService, type SupportTicket } from '../services/supportService';
@@ -35,7 +17,12 @@ import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import PageHeader from '../components/PageHeader';
 import StatusBadge from '../components/StatusBadge';
+import SkeletonLoader from '../components/SkeletonLoader';
+import EnhancedEmptyState from '../components/EnhancedEmptyState';
+import Modal from '../components/Modal';
 import GradientButton from '../components/GradientButton';
+import { useToast } from '../components/ToastProvider';
+import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 
 export default function SupportPage() {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
@@ -50,7 +37,7 @@ export default function SupportPage() {
   });
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const { showToast } = useToast();
 
   useEffect(() => {
     loadTickets();
@@ -62,7 +49,7 @@ export default function SupportPage() {
       const response = await supportService.getTickets();
       setTickets(response.data);
     } catch (error) {
-      console.error('Error loading tickets:', error);
+      showToast('Ошибка при загрузке тикетов', 'error');
     } finally {
       setLoading(false);
     }
@@ -75,8 +62,7 @@ export default function SupportPage() {
       setDialogOpen(false);
       setFormData({ subject: '', description: '', priority: 'normal', category: 'general' });
       loadTickets();
-      setSuccess('Тикет успешно создан');
-      setTimeout(() => setSuccess(''), 3000);
+      showToast('Тикет успешно создан', 'success');
     } catch (error: any) {
       setError(error.response?.data?.message || 'Ошибка при создании тикета');
     }
@@ -88,7 +74,7 @@ export default function SupportPage() {
       setSelectedTicket(fullTicket);
       setMessage('');
     } catch (error) {
-      console.error('Error loading ticket:', error);
+      showToast('Ошибка при загрузке тикета', 'error');
     }
   };
 
@@ -100,16 +86,17 @@ export default function SupportPage() {
       setMessage('');
       const updatedTicket = await supportService.getTicket(selectedTicket.id);
       setSelectedTicket(updatedTicket);
+      showToast('Сообщение отправлено', 'success');
     } catch (error) {
-      console.error('Error sending message:', error);
+      showToast('Ошибка при отправке сообщения', 'error');
     }
   };
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <CircularProgress size={48} />
-      </Box>
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <SkeletonLoader type="list" count={6} />
+      </Container>
     );
   }
 
@@ -120,72 +107,44 @@ export default function SupportPage() {
         subtitle="Мы всегда готовы помочь вам"
         icon={<SupportAgentIcon />}
         actions={
-          <GradientButton
-            startIcon={<AddIcon />}
-            onClick={() => setDialogOpen(true)}
-          >
+          <GradientButton onClick={() => setDialogOpen(true)}>
             Создать тикет
           </GradientButton>
         }
       />
 
-      {success && (
-        <Alert severity="success" sx={{ mb: 3, borderRadius: 3 }}>
-          {success}
-        </Alert>
-      )}
-
       <Grid container spacing={3}>
         <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2, borderRadius: 4, height: '100%' }}>
+          <Paper sx={{ p: 2, borderRadius: 4 }}>
             <Typography variant="h6" fontWeight="bold" sx={{ p: 2 }}>
               Мои тикеты
             </Typography>
-            <List sx={{ py: 0 }}>
+            <Box sx={{ maxHeight: 600, overflow: 'auto' }}>
               {tickets.map((ticket, index) => (
                 <motion.div
                   key={ticket.id}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.2, delay: index * 0.03 }}
+                  onClick={() => handleSelectTicket(ticket)}
+                  style={{
+                    cursor: 'pointer',
+                    padding: 12,
+                    borderRadius: 12,
+                    bgcolor: selectedTicket?.id === ticket.id ? 'primary.main' : 'transparent',
+                    color: selectedTicket?.id === ticket.id ? 'white' : 'text.primary',
+                    marginBottom: 4,
+                  }}
                 >
-                  <ListItem
-                    component="div"
-                    onClick={() => handleSelectTicket(ticket)}
-                    sx={{
-                      cursor: 'pointer',
-                      borderRadius: 3,
-                      mb: 0.5,
-                      bgcolor: selectedTicket?.id === ticket.id ? 'primary.main' : 'transparent',
-                      color: selectedTicket?.id === ticket.id ? 'white' : 'text.primary',
-                      '&:hover': {
-                        bgcolor: selectedTicket?.id === ticket.id ? 'primary.dark' : 'action.hover',
-                      },
-                      flexDirection: 'column',
-                      alignItems: 'flex-start',
-                    }}
-                  >
-                    <ListItemText
-                      primary={
-                        <Typography variant="body2" fontWeight="bold" noWrap>
-                          {ticket.subject}
-                        </Typography>
-                      }
-                      secondary={
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color: selectedTicket?.id === ticket.id ? 'rgba(255,255,255,0.7)' : 'text.secondary',
-                          }}
-                        >
-                          {format(new Date(ticket.created_at), 'dd.MM.yyyy')}
-                        </Typography>
-                      }
-                    />
-                    <Box sx={{ mt: 0.5 }}>
-                      <StatusBadge status={ticket.status} size="small" />
-                    </Box>
-                  </ListItem>
+                  <Typography variant="body2" fontWeight="bold" noWrap>
+                    {ticket.subject}
+                  </Typography>
+                  <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                    {format(new Date(ticket.created_at), 'dd.MM.yyyy')}
+                  </Typography>
+                  <Box sx={{ mt: 0.5 }}>
+                    <StatusBadge status={ticket.status} size="small" />
+                  </Box>
                 </motion.div>
               ))}
               {tickets.length === 0 && (
@@ -195,35 +154,24 @@ export default function SupportPage() {
                   </Typography>
                 </Box>
               )}
-            </List>
+            </Box>
           </Paper>
         </Grid>
 
         <Grid item xs={12} md={8}>
           {selectedTicket ? (
             <Paper sx={{ p: 3, borderRadius: 4, height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="h6" fontWeight="bold" gutterBottom>
-                  {selectedTicket.subject}
-                </Typography>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <StatusBadge status={selectedTicket.status} />
-                  <Chip
-                    label={selectedTicket.priority}
-                    size="small"
-                    variant="outlined"
-                    sx={{ borderRadius: 6 }}
-                  />
-                </Stack>
-              </Box>
-
+              <Typography variant="h6" fontWeight="bold" gutterBottom>
+                {selectedTicket.subject}
+              </Typography>
+              <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+                <StatusBadge status={selectedTicket.status} />
+              </Stack>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 {selectedTicket.description}
               </Typography>
 
-              <Divider sx={{ my: 2 }} />
-
-              <Box sx={{ flex: 1, overflow: 'auto', mb: 2, maxHeight: 400 }}>
+              <Box sx={{ flex: 1, overflow: 'auto', mb: 2 }}>
                 {selectedTicket.messages?.map((msg) => (
                   <Box key={msg.id} sx={{ mb: 2 }}>
                     <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
@@ -263,30 +211,40 @@ export default function SupportPage() {
               </Box>
             </Paper>
           ) : (
-            <Paper sx={{ p: 6, borderRadius: 4, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Box sx={{ textAlign: 'center' }}>
-                <SupportAgentIcon sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
-                <Typography variant="h6" color="text.secondary" gutterBottom>
-                  Выберите тикет для просмотра
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Или создайте новый тикет
-                </Typography>
-              </Box>
-            </Paper>
+            <EnhancedEmptyState
+              icon={<SupportAgentIcon sx={{ fontSize: 80, color: 'primary.main' }} />}
+              title="Выберите тикет"
+              description="Выберите тикет из списка или создайте новый"
+              primaryAction={{
+                label: 'Создать тикет',
+                onClick: () => setDialogOpen(true),
+              }}
+            />
           )}
         </Grid>
       </Grid>
 
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 'bold' }}>
-          Создать тикет
-        </DialogTitle>
-        <DialogContent>
+      <Modal
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        title="Создать тикет"
+        maxWidth="sm"
+        actions={
+          <>
+            <button onClick={() => setDialogOpen(false)} className="btn btn-outline">
+              Отмена
+            </button>
+            <GradientButton onClick={handleCreateTicket}>
+              Создать
+            </GradientButton>
+          </>
+        }
+      >
+        <Box sx={{ mt: 2 }}>
           {error && (
-            <Alert severity="error" sx={{ mb: 2, borderRadius: 3 }}>
+            <Typography color="error" sx={{ mb: 2 }}>
               {error}
-            </Alert>
+            </Typography>
           )}
           <TextField
             fullWidth
@@ -319,29 +277,8 @@ export default function SupportPage() {
               <MenuItem value="urgent">Срочный</MenuItem>
             </Select>
           </FormControl>
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Категория</InputLabel>
-            <Select
-              value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              label="Категория"
-            >
-              <MenuItem value="general">Общее</MenuItem>
-              <MenuItem value="technical">Техническая проблема</MenuItem>
-              <MenuItem value="billing">Оплата</MenuItem>
-              <MenuItem value="other">Другое</MenuItem>
-            </Select>
-          </FormControl>
-        </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-          <Button onClick={() => setDialogOpen(false)}>
-            Отмена
-          </Button>
-          <GradientButton onClick={handleCreateTicket}>
-            Создать
-          </GradientButton>
-        </DialogActions>
-      </Dialog>
+        </Box>
+      </Modal>
     </Container>
   );
 }

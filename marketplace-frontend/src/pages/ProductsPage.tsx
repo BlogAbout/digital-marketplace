@@ -1,24 +1,21 @@
+// src/pages/ProductsPage.tsx
 import { useEffect, useState } from 'react';
 import {
   Container,
   Typography,
   Grid,
   Box,
-  CircularProgress,
-  FormControl,
-  Select,
-  MenuItem,
-  InputLabel,
   Pagination,
-  Stack,
 } from '@mui/material';
 import ProductCard from '../components/ProductCard';
-import SearchBar from '../components/SearchBar';
-import EmptyState from '../components/EmptyState';
+import FilterBar from '../components/FilterBar';
+import SkeletonLoader from '../components/SkeletonLoader';
+import EnhancedEmptyState from '../components/EnhancedEmptyState';
 import { productService } from '../services/productService';
 import type { Product, Category } from '../types';
 import { useSearchParams } from 'react-router-dom';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+import { motion } from 'framer-motion';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -76,45 +73,59 @@ export default function ProductsPage() {
     setPage(1);
   };
 
-  if (loading && !products.length) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <CircularProgress size={48} />
-      </Box>
-    );
-  }
+  const handleSearchChange = (search: string) => {
+    if (search) {
+      searchParams.set('search', search);
+    } else {
+      searchParams.delete('search');
+    }
+    setSearchParams(searchParams);
+    setPage(1);
+  };
+
+  const handleClearFilters = () => {
+    searchParams.delete('category');
+    searchParams.delete('search');
+    setSearchParams(searchParams);
+    setPage(1);
+  };
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
         <Typography variant="h4" fontWeight="bold" gutterBottom>
           Каталог товаров
         </Typography>
-        <Typography variant="body1" color="text.secondary">
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
           Найдите идеальный цифровой продукт для ваших нужд
         </Typography>
-      </Box>
+      </motion.div>
 
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 4 }}>
-        <SearchBar />
-        <FormControl sx={{ minWidth: 200 }}>
-          <InputLabel>Категория</InputLabel>
-          <Select
-            value={categoryId}
-            onChange={(e) => handleCategoryChange(e.target.value)}
-            label="Категория"
-          >
-            <MenuItem value="">Все категории</MenuItem>
-            {categories.map((category) => (
-              <MenuItem key={category.id} value={category.id}>
-                {category.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Stack>
+      <FilterBar
+        searchPlaceholder="Поиск товаров..."
+        searchValue={search}
+        onSearchChange={handleSearchChange}
+        filters={[
+          {
+            label: 'Категория',
+            value: categoryId,
+            onChange: handleCategoryChange,
+            options: categories.map(cat => ({
+              value: cat.id,
+              label: cat.name,
+            })),
+          },
+        ]}
+        onClear={handleClearFilters}
+      />
 
-      {products.length > 0 ? (
+      {loading ? (
+        <SkeletonLoader type="card" count={8} />
+      ) : products.length > 0 ? (
         <Grid container spacing={3}>
           {products.map((product, index) => (
             <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
@@ -123,14 +134,18 @@ export default function ProductsPage() {
           ))}
         </Grid>
       ) : (
-        <EmptyState
-          icon={<ShoppingBagIcon sx={{ fontSize: 80, color: 'text.secondary' }} />}
+        <EnhancedEmptyState
+          icon={<ShoppingBagIcon sx={{ fontSize: 80, color: 'primary.main' }} />}
           title="Товары не найдены"
           description="Попробуйте изменить параметры поиска или выберите другую категорию"
+          primaryAction={{
+            label: 'Сбросить фильтры',
+            onClick: handleClearFilters,
+          }}
         />
       )}
 
-      {totalPages > 1 && (
+      {totalPages > 1 && !loading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
           <Pagination
             count={totalPages}

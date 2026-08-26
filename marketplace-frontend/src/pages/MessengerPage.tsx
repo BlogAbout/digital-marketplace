@@ -1,39 +1,29 @@
+// src/pages/MessengerPage.tsx
 import { useEffect, useState, useRef } from 'react';
 import {
   Container,
   Grid,
   Paper,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemAvatar,
-  Avatar,
+  Box,
   Typography,
   TextField,
-  Button,
-  Box,
-  Divider,
   IconButton,
-  Badge,
-  CircularProgress,
-  Stack,
-  Chip,
-  Tooltip,
   InputAdornment,
+  Avatar,
+  Chip,
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
-import AttachFileIcon from '@mui/icons-material/AttachFile';
 import SearchIcon from '@mui/icons-material/Search';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import GroupIcon from '@mui/icons-material/Group';
-import PersonIcon from '@mui/icons-material/Person';
 import { useAuthStore } from '../stores/authStore';
 import { messengerService } from '../services/messengerService';
 import { useWebSocket } from '../hooks/useWebSocket';
 import type { Chat, Message } from '../types';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
+import AvatarWithStatus from '../components/AvatarWithStatus';
+import SkeletonLoader from '../components/SkeletonLoader';
 import GradientButton from '../components/GradientButton';
+import { useToast } from '../components/ToastProvider';
 
 export default function MessengerPage() {
   const { user } = useAuthStore();
@@ -45,6 +35,7 @@ export default function MessengerPage() {
   const [sending, setSending] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { showToast } = useToast();
 
   useWebSocket({
     userId: user?.id,
@@ -73,7 +64,7 @@ export default function MessengerPage() {
       const data = await messengerService.getChats();
       setChats(data);
     } catch (error) {
-      console.error('Error loading chats:', error);
+      showToast('Ошибка при загрузке чатов', 'error');
     } finally {
       setLoading(false);
     }
@@ -85,7 +76,7 @@ export default function MessengerPage() {
       setMessages(response.data.reverse());
       scrollToBottom();
     } catch (error) {
-      console.error('Error loading messages:', error);
+      showToast('Ошибка при загрузке сообщений', 'error');
     }
   };
 
@@ -101,7 +92,7 @@ export default function MessengerPage() {
       setNewMessage('');
       scrollToBottom();
     } catch (error) {
-      console.error('Error sending message:', error);
+      showToast('Ошибка при отправке сообщения', 'error');
     } finally {
       setSending(false);
     }
@@ -113,13 +104,6 @@ export default function MessengerPage() {
     }, 100);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
   const filteredChats = chats.filter(chat => {
     if (!searchQuery) return true;
     const chatName = chat.name || chat.participants?.find(p => p.id !== user?.id)?.name || '';
@@ -128,9 +112,9 @@ export default function MessengerPage() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <CircularProgress size={48} />
-      </Box>
+      <Container maxWidth="xl" sx={{ py: 2 }}>
+        <SkeletonLoader type="list" count={8} />
+      </Container>
     );
   }
 
@@ -169,11 +153,12 @@ export default function MessengerPage() {
               />
             </Box>
 
-            <List sx={{ overflow: 'auto', height: 'calc(100% - 100px)', py: 0 }}>
+            <Box sx={{ overflow: 'auto', height: 'calc(100% - 100px)' }}>
               <AnimatePresence>
                 {filteredChats.map((chat, index) => {
                   const chatName = chat.name || chat.participants?.find(p => p.id !== user?.id)?.name || 'Чат';
                   const isActive = activeChat?.id === chat.id;
+                  const chatUser = chat.participants?.find(p => p.id !== user?.id);
 
                   return (
                     <motion.div
@@ -181,279 +166,125 @@ export default function MessengerPage() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.2, delay: index * 0.03 }}
+                      onClick={() => setActiveChat(chat)}
+                      style={{
+                        cursor: 'pointer',
+                        padding: 12,
+                        bgcolor: isActive ? 'primary.main' : 'transparent',
+                        color: isActive ? 'white' : 'text.primary',
+                        borderBottom: '1px solid',
+                        borderColor: 'divider',
+                      }}
                     >
-                      <ListItem
-                        component="div"
-                        onClick={() => setActiveChat(chat)}
-                        sx={{
-                          cursor: 'pointer',
-                          px: 2,
-                          py: 1.5,
-                          bgcolor: isActive ? 'primary.main' : 'transparent',
-                          color: isActive ? 'white' : 'text.primary',
-                          '&:hover': {
-                            bgcolor: isActive ? 'primary.dark' : 'action.hover',
-                          },
-                          transition: 'all 0.2s',
-                        }}
-                      >
-                        <ListItemAvatar>
-                          <Badge
-                            color="success"
-                            variant="dot"
-                            invisible={!chat.last_message}
-                          >
-                            <Avatar
-                              sx={{
-                                bgcolor: isActive ? 'white' : 'primary.main',
-                                color: isActive ? 'primary.main' : 'white',
-                              }}
-                            >
-                              {chat.type === 'group' ? <GroupIcon /> : <PersonIcon />}
-                            </Avatar>
-                          </Badge>
-                        </ListItemAvatar>
-                        <ListItemText
-                          primary={
-                            <Typography
-                              variant="body2"
-                              fontWeight={isActive ? 'bold' : 'medium'}
-                              noWrap
-                            >
-                              {chatName}
-                            </Typography>
-                          }
-                          secondary={
-                            <Typography
-                              variant="caption"
-                              noWrap
-                              sx={{ color: isActive ? 'rgba(255,255,255,0.8)' : 'text.secondary' }}
-                            >
-                              {chat.last_message?.text?.substring(0, 50) || 'Нет сообщений'}
-                            </Typography>
-                          }
-                        />
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        {chatUser && (
+                          <AvatarWithStatus
+                            user={chatUser}
+                            size={40}
+                            showOnline={chat.type === 'private'}
+                          />
+                        )}
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography variant="body2" fontWeight={isActive ? 'bold' : 'medium'} noWrap>
+                            {chatName}
+                          </Typography>
+                          <Typography variant="caption" noWrap sx={{ opacity: 0.7 }}>
+                            {chat.last_message?.text?.substring(0, 50) || 'Нет сообщений'}
+                          </Typography>
+                        </Box>
                         {chat.last_message && (
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              color: isActive ? 'rgba(255,255,255,0.6)' : 'text.secondary',
-                              ml: 1,
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
+                          <Typography variant="caption" sx={{ opacity: 0.7, whiteSpace: 'nowrap' }}>
                             {format(new Date(chat.last_message.created_at), 'HH:mm')}
                           </Typography>
                         )}
-                      </ListItem>
+                      </Box>
                     </motion.div>
                   );
                 })}
               </AnimatePresence>
-
-              {filteredChats.length === 0 && (
-                <Box sx={{ p: 4, textAlign: 'center' }}>
-                  <Typography color="text.secondary">
-                    Нет чатов
-                  </Typography>
-                </Box>
-              )}
-            </List>
+            </Box>
           </Grid>
 
           {/* Messages */}
           <Grid item xs={12} md={8}>
             {activeChat ? (
               <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                {/* Chat Header */}
-                <Box
-                  sx={{
-                    p: 2,
-                    borderBottom: '1px solid',
-                    borderColor: 'divider',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 2,
-                  }}
-                >
-                  <Avatar sx={{ bgcolor: 'primary.main' }}>
-                    {activeChat.type === 'group' ? <GroupIcon /> : <PersonIcon />}
-                  </Avatar>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="h6" fontWeight="bold">
-                      {activeChat.name || activeChat.participants?.find(p => p.id !== user?.id)?.name || 'Чат'}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {activeChat.participants?.length || 0} участников
-                    </Typography>
-                  </Box>
-                  <IconButton>
-                    <MoreVertIcon />
-                  </IconButton>
+                <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+                  <Typography variant="h6" fontWeight="bold">
+                    {activeChat.name || activeChat.participants?.find(p => p.id !== user?.id)?.name || 'Чат'}
+                  </Typography>
                 </Box>
 
-                {/* Messages Area */}
-                <Box
-                  sx={{
-                    flex: 1,
-                    overflow: 'auto',
-                    p: 3,
-                    bgcolor: 'grey.50',
-                  }}
-                >
-                  <AnimatePresence>
-                    {messages.map((message, index) => {
-                      const isOwn = message.user_id === user?.id;
-                      const prevMessage = messages[index - 1];
-                      const showDate = !prevMessage ||
-                        format(new Date(prevMessage.created_at), 'dd.MM.yyyy') !==
-                        format(new Date(message.created_at), 'dd.MM.yyyy');
+                <Box sx={{ flex: 1, overflow: 'auto', p: 3, bgcolor: 'grey.50' }}>
+                  {messages.map((message, index) => {
+                    const isOwn = message.user_id === user?.id;
+                    const prevMessage = messages[index - 1];
+                    const showDate = !prevMessage ||
+                      format(new Date(prevMessage.created_at), 'dd.MM.yyyy') !==
+                      format(new Date(message.created_at), 'dd.MM.yyyy');
 
-                      return (
-                        <motion.div
-                          key={message.id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.2 }}
+                    return (
+                      <Box key={message.id}>
+                        {showDate && (
+                          <Box sx={{ textAlign: 'center', my: 2 }}>
+                            <Chip
+                              label={format(new Date(message.created_at), 'dd MMMM yyyy')}
+                              size="small"
+                            />
+                          </Box>
+                        )}
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            justifyContent: isOwn ? 'flex-end' : 'flex-start',
+                            mb: 1,
+                          }}
                         >
-                          {showDate && (
-                            <Box sx={{ textAlign: 'center', my: 2 }}>
-                              <Chip
-                                label={format(new Date(message.created_at), 'dd MMMM yyyy')}
-                                size="small"
-                                sx={{ bgcolor: 'grey.200' }}
-                              />
-                            </Box>
-                          )}
-
-                          <Box
+                          <Paper
                             sx={{
-                              display: 'flex',
-                              justifyContent: isOwn ? 'flex-end' : 'flex-start',
-                              mb: 1,
+                              p: 2,
+                              maxWidth: '70%',
+                              bgcolor: isOwn ? 'primary.main' : 'white',
+                              color: isOwn ? 'white' : 'text.primary',
+                              borderRadius: isOwn ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
                             }}
                           >
-                            <Box
-                              sx={{
-                                maxWidth: '70%',
-                                display: 'flex',
-                                gap: 1,
-                                flexDirection: isOwn ? 'row-reverse' : 'row',
-                              }}
-                            >
-                              <Avatar
-                                sx={{
-                                  width: 32,
-                                  height: 32,
-                                  bgcolor: isOwn ? 'primary.main' : 'secondary.main',
-                                  fontSize: 14,
-                                }}
-                              >
-                                {message.user?.name?.charAt(0) || 'U'}
-                              </Avatar>
-                              <Box>
-                                <Paper
-                                  sx={{
-                                    p: 2,
-                                    bgcolor: isOwn ? 'primary.main' : 'white',
-                                    color: isOwn ? 'white' : 'text.primary',
-                                    borderRadius: isOwn ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
-                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                  }}
-                                >
-                                  {message.reply_to && (
-                                    <Typography
-                                      variant="caption"
-                                      sx={{
-                                        display: 'block',
-                                        mb: 1,
-                                        opacity: 0.7,
-                                        borderLeft: '2px solid',
-                                        pl: 1,
-                                      }}
-                                    >
-                                      ↪ {message.reply_to.text?.substring(0, 50)}
-                                    </Typography>
-                                  )}
-                                  <Typography variant="body1">
-                                    {message.text}
-                                  </Typography>
-                                  <Typography
-                                    variant="caption"
-                                    sx={{
-                                      display: 'block',
-                                      mt: 0.5,
-                                      opacity: 0.7,
-                                      textAlign: isOwn ? 'right' : 'left',
-                                    }}
-                                  >
-                                    {format(new Date(message.created_at), 'HH:mm')}
-                                    {message.is_edited && ' (изменено)'}
-                                  </Typography>
-                                </Paper>
-                              </Box>
-                            </Box>
-                          </Box>
-                        </motion.div>
-                      );
-                    })}
-                  </AnimatePresence>
+                            <Typography variant="body1">{message.text}</Typography>
+                            <Typography variant="caption" sx={{ display: 'block', mt: 0.5, opacity: 0.7 }}>
+                              {format(new Date(message.created_at), 'HH:mm')}
+                            </Typography>
+                          </Paper>
+                        </Box>
+                      </Box>
+                    );
+                  })}
                   <div ref={messagesEndRef} />
                 </Box>
 
-                {/* Message Input */}
-                <Box
-                  sx={{
-                    p: 2,
-                    borderTop: '1px solid',
-                    borderColor: 'divider',
-                    display: 'flex',
-                    gap: 1,
-                    bgcolor: 'white',
-                  }}
-                >
-                  <IconButton>
-                    <AttachFileIcon />
-                  </IconButton>
-                  <TextField
-                    fullWidth
-                    multiline
-                    maxRows={4}
-                    placeholder="Введите сообщение..."
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 12,
-                      },
-                    }}
-                  />
-                  <GradientButton
-                    onClick={handleSendMessage}
-                    disabled={sending || !newMessage.trim()}
-                    sx={{ minWidth: 50, width: 50, p: 1 }}
-                  >
-                    <SendIcon />
-                  </GradientButton>
+                <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      maxRows={4}
+                      placeholder="Введите сообщение..."
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                    />
+                    <GradientButton
+                      onClick={handleSendMessage}
+                      disabled={sending || !newMessage.trim()}
+                      sx={{ minWidth: 50, width: 50, p: 1 }}
+                    >
+                      <SendIcon />
+                    </GradientButton>
+                  </Box>
                 </Box>
               </Box>
             ) : (
-              <Box
-                sx={{
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  bgcolor: 'grey.50',
-                }}
-              >
-                <Typography variant="h6" color="text.secondary" gutterBottom>
-                  Выберите чат
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Начните общение с другими пользователями
+              <Box sx={{ height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <Typography color="text.secondary">
+                  Выберите чат для начала общения
                 </Typography>
               </Box>
             )}

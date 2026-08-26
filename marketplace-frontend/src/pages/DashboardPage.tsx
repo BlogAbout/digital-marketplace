@@ -1,47 +1,40 @@
-import {useEffect, useState} from 'react';
+// src/pages/DashboardPage.tsx
+import { useEffect, useState } from 'react';
 import {
-  Avatar,
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
   Container,
-  Grid,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Paper,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Typography,
+  Grid,
+  Paper,
+  Box,
+  Stack,
 } from '@mui/material';
-import {Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
-  Add as AddIcon,
-  AttachMoney as MoneyIcon,
-  BarChart as BarChartIcon,
   Dashboard as DashboardIcon,
-  Gavel as GavelIcon,
-  Receipt as ReceiptIcon,
   ShoppingCart as ShoppingCartIcon,
+  Receipt as ReceiptIcon,
+  BarChart as BarChartIcon,
+  Gavel as GavelIcon,
+  Add as AddIcon,
   Visibility as VisibilityIcon,
+  AttachMoney as MoneyIcon,
 } from '@mui/icons-material';
-import {useAuthStore} from '../stores/authStore';
-import {productService} from '../services/productService';
-import {orderService} from '../services/orderService';
-import type {Order, Product} from '../types';
-import {motion} from 'framer-motion';
+import { useAuthStore } from '../stores/authStore';
+import { productService } from '../services/productService';
+import { orderService } from '../services/orderService';
+import type { Product, Order } from '../types';
+import { motion } from 'framer-motion';
 import StatsCard from '../components/StatsCard';
+import DataTable from '../components/DataTable';
+import Sidebar from '../components/Sidebar';
 import GradientButton from '../components/GradientButton';
+import StatusBadge from '../components/StatusBadge';
+import SkeletonLoader from '../components/SkeletonLoader';
+import FloatingActionButton from '../components/FloatingActionButton';
+import AvatarWithStatus from '../components/AvatarWithStatus';
 
 export default function DashboardPage() {
-  const {user} = useAuthStore();
+  const { user } = useAuthStore();
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,7 +47,7 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       const [productsResponse, ordersResponse] = await Promise.all([
-        productService.getProducts({per_page: 100}),
+        productService.getProducts({ per_page: 100 }),
         orderService.getMyOrders(),
       ]);
       setProducts(productsResponse.data);
@@ -66,14 +59,6 @@ export default function DashboardPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh'}}>
-        <CircularProgress size={48}/>
-      </Box>
-    );
-  }
-
   const totalRevenue = orders
     .filter(order => order.status === 'completed' || order.status === 'paid')
     .reduce((sum, order) => sum + Number(order.total), 0);
@@ -84,13 +69,65 @@ export default function DashboardPage() {
 
   const totalViews = products.reduce((sum, product) => sum + product.views_count, 0);
 
+  const sidebarItems = [
+    { label: 'Обзор', icon: <DashboardIcon />, to: '/dashboard' },
+    { label: 'Мои товары', icon: <ShoppingCartIcon />, to: '/dashboard/products' },
+    { label: 'Заказы', icon: <ReceiptIcon />, to: '/dashboard/orders' },
+    { label: 'Статистика', icon: <BarChartIcon />, to: '/dashboard/statistics' },
+    { label: 'Споры', icon: <GavelIcon />, to: '/dashboard/disputes' },
+  ];
+
+  const productColumns = [
+    {
+      key: 'name',
+      label: 'Товар',
+      sortable: true,
+      render: (product: Product) => (
+        <Stack direction="row" spacing={2} alignItems="center">
+          <AvatarWithStatus user={product.author!} size={36} showOnline={false} />
+          <Typography variant="body2" fontWeight="medium">
+            {product.name}
+          </Typography>
+        </Stack>
+      ),
+    },
+    {
+      key: 'status',
+      label: 'Статус',
+      sortable: true,
+      render: (product: Product) => <StatusBadge status={product.status} />,
+    },
+    {
+      key: 'cost',
+      label: 'Цена',
+      sortable: true,
+      render: (product: Product) => (
+        <Typography variant="body2">
+          {product.is_free ? 'Бесплатно' : `${product.cost} ${product.currency}`}
+        </Typography>
+      ),
+    },
+    {
+      key: 'sales_count',
+      label: 'Продажи',
+      align: 'right' as const,
+      sortable: true,
+    },
+    {
+      key: 'views_count',
+      label: 'Просмотры',
+      align: 'right' as const,
+      sortable: true,
+    },
+  ];
+
   return (
-    <Container maxWidth="xl" sx={{py: 4}}>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Welcome Section */}
       <motion.div
-        initial={{opacity: 0, y: 20}}
-        animate={{opacity: 1, y: 0}}
-        transition={{duration: 0.5}}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
       >
         <Paper
           sx={{
@@ -114,28 +151,17 @@ export default function DashboardPage() {
               bgcolor: 'rgba(255, 255, 255, 0.1)',
             }}
           />
-          <Box
-            sx={{
-              position: 'absolute',
-              bottom: -75,
-              right: 75,
-              width: 150,
-              height: 150,
-              borderRadius: '50%',
-              bgcolor: 'rgba(255, 255, 255, 0.05)',
-            }}
-          />
-          <Box sx={{position: 'relative', zIndex: 1}}>
+          <Box sx={{ position: 'relative', zIndex: 1 }}>
             <Typography variant="h4" fontWeight="bold" gutterBottom>
               Добро пожаловать, {user?.name}!
             </Typography>
-            <Typography variant="body1" sx={{mb: 3, opacity: 0.9}}>
+            <Typography variant="body1" sx={{ mb: 3, opacity: 0.9 }}>
               Управляйте своими товарами, отслеживайте продажи и развивайте бизнес
             </Typography>
             <GradientButton
               component={Link}
               to="/dashboard/products"
-              startIcon={<AddIcon/>}
+              startIcon={<AddIcon />}
               sx={{
                 bgcolor: 'white',
                 color: 'primary.main',
@@ -150,150 +176,86 @@ export default function DashboardPage() {
         </Paper>
       </motion.div>
 
-      {/* Stats Cards */}
-      <Grid container spacing={3} sx={{mb: 4}}>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatsCard
-            title="Продажи"
-            value={totalSales}
-            icon={<ShoppingCartIcon/>}
-            color="#10B981"
-            trend={12}
-            index={0}
-          />
+      {loading ? (
+        <SkeletonLoader type="card" count={4} />
+      ) : (
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatsCard
+              title="Продажи"
+              value={totalSales}
+              icon={<ShoppingCartIcon />}
+              color="#10B981"
+              trend={12}
+              index={0}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatsCard
+              title="Доход"
+              value={`$${totalRevenue.toFixed(2)}`}
+              icon={<MoneyIcon />}
+              color="#6366F1"
+              trend={8}
+              index={1}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatsCard
+              title="Просмотры"
+              value={totalViews}
+              icon={<VisibilityIcon />}
+              color="#F59E0B"
+              index={2}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatsCard
+              title="Товары"
+              value={products.length}
+              icon={<DashboardIcon />}
+              color="#8B5CF6"
+              index={3}
+            />
+          </Grid>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatsCard
-            title="Доход"
-            value={`$${totalRevenue.toFixed(2)}`}
-            icon={<MoneyIcon/>}
-            color="#6366F1"
-            trend={8}
-            index={1}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatsCard
-            title="Просмотры"
-            value={totalViews}
-            icon={<VisibilityIcon/>}
-            color="#F59E0B"
-            trend={-3}
-            index={2}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatsCard
-            title="Товары"
-            value={products.length}
-            icon={<DashboardIcon/>}
-            color="#8B5CF6"
-            index={3}
-          />
-        </Grid>
-      </Grid>
+      )}
 
       <Grid container spacing={4}>
-        {/* Navigation */}
         <Grid item xs={12} md={3}>
-          <Paper sx={{p: 2, borderRadius: 4}}>
-            <Typography variant="h6" fontWeight="bold" sx={{px: 2, py: 1}}>
-              Навигация
-            </Typography>
-            <List>
-              <ListItem component={Link} to="/dashboard" sx={{borderRadius: 3, mb: 0.5}}>
-                <ListItemIcon>
-                  <DashboardIcon color="primary"/>
-                </ListItemIcon>
-                <ListItemText primary="Обзор"/>
-              </ListItem>
-              <ListItem component={Link} to="/dashboard/products" sx={{borderRadius: 3, mb: 0.5}}>
-                <ListItemIcon>
-                  <ShoppingCartIcon color="primary"/>
-                </ListItemIcon>
-                <ListItemText primary="Мои товары"/>
-              </ListItem>
-              <ListItem component={Link} to="/dashboard/orders" sx={{borderRadius: 3, mb: 0.5}}>
-                <ListItemIcon>
-                  <ReceiptIcon color="primary"/>
-                </ListItemIcon>
-                <ListItemText primary="Заказы"/>
-              </ListItem>
-              <ListItem component={Link} to="/dashboard/statistics" sx={{borderRadius: 3, mb: 0.5}}>
-                <ListItemIcon>
-                  <BarChartIcon color="primary"/>
-                </ListItemIcon>
-                <ListItemText primary="Статистика"/>
-              </ListItem>
-              <ListItem component={Link} to="/dashboard/disputes" sx={{borderRadius: 3}}>
-                <ListItemIcon>
-                  <GavelIcon color="primary"/>
-                </ListItemIcon>
-                <ListItemText primary="Споры"/>
-              </ListItem>
-            </List>
+          <Paper sx={{ borderRadius: 4 }}>
+            <Sidebar title="Навигация" items={sidebarItems} />
           </Paper>
         </Grid>
 
-        {/* Recent Products */}
         <Grid item xs={12} md={9}>
-          <Paper sx={{p: 3, borderRadius: 4}}>
-            <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3}}>
-              <Typography variant="h6" fontWeight="bold">
-                Последние товары
-              </Typography>
-              <Button component={Link} to="/dashboard/products">
-                Показать все
-              </Button>
-            </Box>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Товар</TableCell>
-                    <TableCell>Статус</TableCell>
-                    <TableCell>Цена</TableCell>
-                    <TableCell align="right">Продажи</TableCell>
-                    <TableCell align="right">Просмотры</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {products.slice(0, 5).map((product) => (
-                    <TableRow key={product.id} hover>
-                      <TableCell>
-                        <Stack direction="row" spacing={2} alignItems="center">
-                          <Avatar sx={{bgcolor: 'primary.main', width: 40, height: 40}}>
-                            {product.name.charAt(0)}
-                          </Avatar>
-                          <Typography variant="body2" fontWeight="medium">
-                            {product.name}
-                          </Typography>
-                        </Stack>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={product.status}
-                          size="small"
-                          color={
-                            product.status === 'approved' ? 'success' :
-                              product.status === 'pending' ? 'warning' : 'default'
-                          }
-                          sx={{borderRadius: 6}}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {product.is_free ? 'Бесплатно' : `${product.cost} ${product.currency}`}
-                      </TableCell>
-                      <TableCell align="right">{product.sales_count}</TableCell>
-                      <TableCell align="right">{product.views_count}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+          <Paper sx={{ p: 3, borderRadius: 4 }}>
+            <Typography variant="h6" fontWeight="bold" sx={{ mb: 3 }}>
+              Последние товары
+            </Typography>
+            {loading ? (
+              <SkeletonLoader type="list" count={5} />
+            ) : (
+              <DataTable
+                columns={productColumns}
+                data={products.slice(0, 10)}
+                emptyState={
+                  <Box sx={{ textAlign: 'center', py: 4 }}>
+                    <Typography color="text.secondary">
+                      У вас пока нет товаров
+                    </Typography>
+                  </Box>
+                }
+              />
+            )}
           </Paper>
         </Grid>
       </Grid>
+
+      <FloatingActionButton
+        onClick={() => window.location.href = '/dashboard/products'}
+        tooltip="Добавить товар"
+      />
     </Container>
   );
 }
