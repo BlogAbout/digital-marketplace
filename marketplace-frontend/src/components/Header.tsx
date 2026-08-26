@@ -186,6 +186,18 @@ export default function Header() {
                 </Avatar>
               </IconButton>
 
+              {/* Добавьте имя пользователя (скрыто на мобильных) */}
+              <Typography
+                variant="body2"
+                sx={{
+                  display: { xs: 'none', sm: 'block' },
+                  ml: 1,
+                  color: 'text.primary',
+                }}
+              >
+                {user.name}
+              </Typography>
+
               <Menu
                 anchorEl={userMenuAnchor}
                 open={Boolean(userMenuAnchor)}

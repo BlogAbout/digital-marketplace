@@ -5,11 +5,14 @@ namespace App\Modules\Shop\Models;
 use App\Modules\Core\BaseModel;
 use App\Modules\Core\Models\File;
 use App\Modules\User\Models\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ShopProduct extends BaseModel
 {
+    use HasFactory;
+
     /**
      * @var string
      */

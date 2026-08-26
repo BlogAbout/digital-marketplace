@@ -4,11 +4,14 @@ namespace App\Modules\Shop\Models;
 
 use App\Modules\Core\BaseModel;
 use App\Modules\User\Models\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ShopCategory extends BaseModel
 {
+    use HasFactory;
+
     /**
      * @var string
      */
