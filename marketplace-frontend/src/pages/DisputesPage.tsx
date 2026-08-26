@@ -18,15 +18,23 @@ import {
   Alert,
   Grid,
   Divider,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
+  Stack,
+  Avatar,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import SendIcon from '@mui/icons-material/Send';
+import GavelIcon from '@mui/icons-material/Gavel';
 import { disputeService, type Dispute } from '../services/disputeService';
 import { orderService } from '../services/orderService';
 import type { Order } from '../types';
 import { format } from 'date-fns';
+import { motion } from 'framer-motion';
+import PageHeader from '../components/PageHeader';
+import StatusBadge from '../components/StatusBadge';
+import GradientButton from '../components/GradientButton';
+import EmptyState from '../components/EmptyState';
 
 export default function DisputesPage() {
   const [disputes, setDisputes] = useState<Dispute[]>([]);
@@ -63,7 +71,6 @@ export default function DisputesPage() {
   const loadOrders = async () => {
     try {
       const orders = await orderService.getMyOrders();
-      // Только завершенные заказы можно оспорить
       setOrders(orders.filter(order => order.status === 'completed'));
     } catch (error) {
       console.error('Error loading orders:', error);
@@ -78,6 +85,7 @@ export default function DisputesPage() {
       setFormData({ order_id: '', reason: '', description: '' });
       loadDisputes();
       setSuccess('Спор успешно создан');
+      setTimeout(() => setSuccess(''), 3000);
     } catch (error: any) {
       setError(error.response?.data?.message || 'Ошибка при создании спора');
     }
@@ -106,89 +114,95 @@ export default function DisputesPage() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'open': return 'error';
-      case 'under_review': return 'warning';
-      case 'resolved': return 'success';
-      case 'closed': return 'default';
-      case 'rejected': return 'error';
-      default: return 'default';
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'open': return 'Открыт';
-      case 'under_review': return 'На рассмотрении';
-      case 'resolved': return 'Решен';
-      case 'closed': return 'Закрыт';
-      case 'rejected': return 'Отклонен';
-      default: return status;
-    }
-  };
-
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <CircularProgress />
+        <CircularProgress size={48} />
       </Box>
     );
   }
 
   return (
-    <Container>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h4">Споры</Typography>
-        <Button
-          variant="contained"
-          onClick={() => setDialogOpen(true)}
-        >
-          Создать спор
-        </Button>
-      </Box>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      <PageHeader
+        title="Споры"
+        subtitle="Управление спорными ситуациями"
+        icon={<GavelIcon />}
+        actions={
+          <GradientButton
+            startIcon={<AddIcon />}
+            onClick={() => setDialogOpen(true)}
+          >
+            Создать спор
+          </GradientButton>
+        }
+      />
 
       {success && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>
+        <Alert severity="success" sx={{ mb: 3, borderRadius: 3 }}>
           {success}
         </Alert>
       )}
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
+          <Paper sx={{ p: 2, borderRadius: 4 }}>
+            <Typography variant="h6" fontWeight="bold" sx={{ p: 2 }}>
               Мои споры
             </Typography>
-            <List>
-              {disputes.map((dispute) => (
-                <ListItem
+            <List sx={{ py: 0 }}>
+              {disputes.map((dispute, index) => (
+                <motion.div
                   key={dispute.id}
-                  component="div"
-                  onClick={() => handleSelectDispute(dispute)}
-                  sx={{
-                    cursor: 'pointer',
-                    bgcolor: selectedDispute?.id === dispute.id ? 'action.selected' : 'transparent',
-                    '&:hover': { bgcolor: 'action.hover' },
-                    flexDirection: 'column',
-                    alignItems: 'flex-start',
-                  }}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.2, delay: index * 0.03 }}
                 >
-                  <ListItemText
-                    primary={dispute.reason}
-                    secondary={format(new Date(dispute.created_at), 'dd.MM.yyyy')}
-                  />
-                  <Chip
-                    label={getStatusLabel(dispute.status)}
-                    color={getStatusColor(dispute.status)}
-                    size="small"
-                  />
-                </ListItem>
+                  <ListItem
+                    component="div"
+                    onClick={() => handleSelectDispute(dispute)}
+                    sx={{
+                      cursor: 'pointer',
+                      borderRadius: 3,
+                      mb: 0.5,
+                      bgcolor: selectedDispute?.id === dispute.id ? 'primary.main' : 'transparent',
+                      color: selectedDispute?.id === dispute.id ? 'white' : 'text.primary',
+                      '&:hover': {
+                        bgcolor: selectedDispute?.id === dispute.id ? 'primary.dark' : 'action.hover',
+                      },
+                      flexDirection: 'column',
+                      alignItems: 'flex-start',
+                    }}
+                  >
+                    <ListItemText
+                      primary={
+                        <Typography variant="body2" fontWeight="bold" noWrap>
+                          {dispute.reason}
+                        </Typography>
+                      }
+                      secondary={
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: selectedDispute?.id === dispute.id ? 'rgba(255,255,255,0.7)' : 'text.secondary',
+                          }}
+                        >
+                          {format(new Date(dispute.created_at), 'dd.MM.yyyy')}
+                        </Typography>
+                      }
+                    />
+                    <Box sx={{ mt: 0.5 }}>
+                      <StatusBadge status={dispute.status} size="small" />
+                    </Box>
+                  </ListItem>
+                </motion.div>
               ))}
               {disputes.length === 0 && (
-                <ListItem>
-                  <ListItemText primary="Нет споров" />
-                </ListItem>
+                <Box sx={{ p: 3, textAlign: 'center' }}>
+                  <Typography color="text.secondary">
+                    Нет споров
+                  </Typography>
+                </Box>
               )}
             </List>
           </Paper>
@@ -196,49 +210,69 @@ export default function DisputesPage() {
 
         <Grid item xs={12} md={8}>
           {selectedDispute ? (
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Спор #{selectedDispute.id.substring(0, 8)}
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                <Chip
-                  label={getStatusLabel(selectedDispute.status)}
-                  color={getStatusColor(selectedDispute.status)}
-                  size="small"
-                />
-                {selectedDispute.resolution && (
-                  <Chip
-                    label={selectedDispute.resolution}
-                    size="small"
-                  />
-                )}
+            <Paper sx={{ p: 3, borderRadius: 4, height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="h6" fontWeight="bold" gutterBottom>
+                  Спор #{selectedDispute.id.substring(0, 8)}
+                </Typography>
+                <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                  <StatusBadge status={selectedDispute.status} />
+                  {selectedDispute.resolution && (
+                    <Chip
+                      label={selectedDispute.resolution}
+                      size="small"
+                      color="info"
+                      sx={{ borderRadius: 6 }}
+                    />
+                  )}
+                </Stack>
               </Box>
-              <Typography variant="body2" color="text.secondary" paragraph>
-                Причина: {selectedDispute.reason}
-              </Typography>
-              <Typography variant="body2" paragraph>
-                {selectedDispute.description}
-              </Typography>
+
+              <Box sx={{ mb: 2, p: 2, bgcolor: 'grey.50', borderRadius: 3 }}>
+                <Typography variant="caption" color="text.secondary">
+                  Причина
+                </Typography>
+                <Typography variant="body2" fontWeight="medium" gutterBottom>
+                  {selectedDispute.reason}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Описание
+                </Typography>
+                <Typography variant="body2">
+                  {selectedDispute.description}
+                </Typography>
+              </Box>
+
               {selectedDispute.resolution_note && (
-                <Alert severity="info" sx={{ mb: 2 }}>
+                <Alert severity="info" sx={{ mb: 2, borderRadius: 3 }}>
                   Решение: {selectedDispute.resolution_note}
                 </Alert>
               )}
+
               {selectedDispute.refund_amount && (
-                <Alert severity="success" sx={{ mb: 2 }}>
+                <Alert severity="success" sx={{ mb: 2, borderRadius: 3 }}>
                   Возврат: ${selectedDispute.refund_amount}
                 </Alert>
               )}
+
               <Divider sx={{ my: 2 }} />
 
-              <Box sx={{ maxHeight: 400, overflow: 'auto', mb: 2 }}>
+              <Box sx={{ flex: 1, overflow: 'auto', mb: 2, maxHeight: 350 }}>
                 {selectedDispute.messages?.map((msg) => (
                   <Box key={msg.id} sx={{ mb: 2 }}>
-                    <Typography variant="caption" color="text.secondary">
-                      {msg.user?.name || 'Пользователь'} - {format(new Date(msg.created_at), 'dd.MM.yyyy HH:mm')}
-                    </Typography>
-                    <Paper sx={{ p: 2, mt: 1, bgcolor: 'grey.50' }}>
-                      <Typography>{msg.message}</Typography>
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+                      <Avatar sx={{ width: 24, height: 24, fontSize: 12 }}>
+                        {msg.user?.name?.charAt(0) || 'U'}
+                      </Avatar>
+                      <Typography variant="caption" color="text.secondary">
+                        {msg.user?.name || 'Пользователь'}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {format(new Date(msg.created_at), 'dd.MM.yyyy HH:mm')}
+                      </Typography>
+                    </Stack>
+                    <Paper sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 3, ml: 4 }}>
+                      <Typography variant="body2">{msg.message}</Typography>
                     </Paper>
                   </Box>
                 ))}
@@ -249,36 +283,40 @@ export default function DisputesPage() {
                   <TextField
                     fullWidth
                     multiline
-                    rows={3}
+                    rows={2}
                     placeholder="Введите сообщение..."
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                   />
-                  <Button
-                    variant="contained"
+                  <GradientButton
                     onClick={handleSendMessage}
                     disabled={!message.trim()}
+                    sx={{ minWidth: 50, width: 50, p: 1 }}
                   >
-                    Отправить
-                  </Button>
+                    <SendIcon />
+                  </GradientButton>
                 </Box>
               )}
             </Paper>
           ) : (
-            <Paper sx={{ p: 3, textAlign: 'center' }}>
-              <Typography color="text.secondary">
-                Выберите спор для просмотра
-              </Typography>
+            <Paper sx={{ p: 6, borderRadius: 4, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <EmptyState
+                icon={<GavelIcon sx={{ fontSize: 80, color: 'text.secondary' }} />}
+                title="Выберите спор"
+                description="Выберите спор из списка или создайте новый"
+              />
             </Paper>
           )}
         </Grid>
       </Grid>
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Создать спор</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 'bold' }}>
+          Создать спор
+        </DialogTitle>
         <DialogContent>
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert severity="error" sx={{ mb: 2, borderRadius: 3 }}>
               {error}
             </Alert>
           )}
@@ -315,11 +353,13 @@ export default function DisputesPage() {
             required
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Отмена</Button>
-          <Button variant="contained" onClick={handleCreateDispute}>
-            Создать
+        <DialogActions sx={{ p: 3 }}>
+          <Button onClick={() => setDialogOpen(false)}>
+            Отмена
           </Button>
+          <GradientButton onClick={handleCreateDispute}>
+            Создать
+          </GradientButton>
         </DialogActions>
       </Dialog>
     </Container>

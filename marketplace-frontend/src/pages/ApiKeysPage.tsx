@@ -22,12 +22,19 @@ import {
   Alert,
   Snackbar,
   Tooltip,
+  Stack,
+  Avatar,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import KeyIcon from '@mui/icons-material/Key';
 import { apiKeyService, type DeveloperApiKey } from '../services/apiKeyService';
 import { format } from 'date-fns';
+import { motion } from 'framer-motion';
+import PageHeader from '../components/PageHeader';
+import GradientButton from '../components/GradientButton';
+import EmptyState from '../components/EmptyState';
 
 export default function ApiKeysPage() {
   const [keys, setKeys] = useState<DeveloperApiKey[]>([]);
@@ -107,90 +114,120 @@ export default function ApiKeysPage() {
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <CircularProgress />
+        <CircularProgress size={48} />
       </Box>
     );
   }
 
   return (
-    <Container>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h4">API ключи</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setDialogOpen(true)}
-        >
-          Создать ключ
-        </Button>
-      </Box>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      <PageHeader
+        title="API ключи"
+        subtitle="Управление ключами для доступа к API"
+        icon={<KeyIcon />}
+        actions={
+          <GradientButton
+            startIcon={<AddIcon />}
+            onClick={() => setDialogOpen(true)}
+          >
+            Создать ключ
+          </GradientButton>
+        }
+      />
 
-      <Paper>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Название</TableCell>
-                <TableCell>Ключ</TableCell>
-                <TableCell>Статус</TableCell>
-                <TableCell>Лимит запросов</TableCell>
-                <TableCell>Последнее использование</TableCell>
-                <TableCell>Действия</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {keys.map((key) => (
-                <TableRow key={key.id}>
-                  <TableCell>{key.name}</TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                        {key.key.substring(0, 16)}...
+      {keys.length > 0 ? (
+        <Paper sx={{ borderRadius: 4, overflow: 'hidden' }}>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ bgcolor: 'grey.50' }}>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Название</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Ключ</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Статус</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Лимит</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Последнее использование</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>Действия</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {keys.map((key, index) => (
+                  <motion.tr
+                    key={key.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2, delay: index * 0.03 }}
+                    style={{ display: 'table-row' }}
+                  >
+                    <TableCell>
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <Avatar sx={{ bgcolor: 'primary.main', width: 36, height: 36 }}>
+                          <KeyIcon fontSize="small" />
+                        </Avatar>
+                        <Typography variant="body2" fontWeight="medium">
+                          {key.name}
+                        </Typography>
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="body2" fontFamily="monospace">
+                          {key.key.substring(0, 20)}...
+                        </Typography>
+                        <Tooltip title="Скопировать">
+                          <IconButton size="small" onClick={() => handleCopyKey(key.key)}>
+                            <ContentCopyIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={key.is_active ? 'Активен' : 'Неактивен'}
+                        color={key.is_active ? 'success' : 'default'}
+                        size="small"
+                        sx={{ borderRadius: 6 }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {key.rate_limit}/мин
                       </Typography>
-                      <Tooltip title="Скопировать">
-                        <IconButton size="small" onClick={() => handleCopyKey(key.key)}>
-                          <ContentCopyIcon fontSize="small" />
+                    </TableCell>
+                    <TableCell>
+                      {key.last_used_at
+                        ? format(new Date(key.last_used_at), 'dd.MM.yyyy HH:mm')
+                        : 'Никогда'}
+                    </TableCell>
+                    <TableCell align="right">
+                      <Tooltip title="Удалить">
+                        <IconButton onClick={() => handleDeleteKey(key)} color="error" size="small">
+                          <DeleteIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={key.is_active ? 'Активен' : 'Неактивен'}
-                      color={key.is_active ? 'success' : 'default'}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>{key.rate_limit}/мин</TableCell>
-                  <TableCell>
-                    {key.last_used_at
-                      ? format(new Date(key.last_used_at), 'dd.MM.yyyy HH:mm')
-                      : 'Никогда'}
-                  </TableCell>
-                  <TableCell>
-                    <IconButton onClick={() => handleDeleteKey(key)} color="error">
-                      <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {keys.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} align="center">
-                    У вас пока нет API ключей
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
+                    </TableCell>
+                  </motion.tr>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
+      ) : (
+        <EmptyState
+          icon={<KeyIcon sx={{ fontSize: 80, color: 'text.secondary' }} />}
+          title="Нет API ключей"
+          description="Создайте ключ для доступа к API"
+          actionLabel="Создать ключ"
+          onAction={() => setDialogOpen(true)}
+        />
+      )}
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Создать API ключ</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 'bold' }}>
+          Создать API ключ
+        </DialogTitle>
         <DialogContent>
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert severity="error" sx={{ mb: 2, borderRadius: 3 }}>
               {error}
             </Alert>
           )}
@@ -222,11 +259,13 @@ export default function ApiKeysPage() {
             InputLabelProps={{ shrink: true }}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Отмена</Button>
-          <Button variant="contained" onClick={handleCreateKey}>
-            Создать
+        <DialogActions sx={{ p: 3 }}>
+          <Button onClick={() => setDialogOpen(false)}>
+            Отмена
           </Button>
+          <GradientButton onClick={handleCreateKey}>
+            Создать
+          </GradientButton>
         </DialogActions>
       </Dialog>
 
