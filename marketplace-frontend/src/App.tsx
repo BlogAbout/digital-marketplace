@@ -19,6 +19,7 @@ import SupportPage from './pages/SupportPage';
 import SupportChatPage from './pages/SupportChatPage';
 import DisputesPage from './pages/DisputesPage';
 import OrdersPage from './pages/OrdersPage';
+import SettingsPage from './pages/SettingsPage';
 import { useEffect } from 'react';
 
 function App() {
@@ -89,6 +90,10 @@ function App() {
 
             <Route path="/support/chat" element={
               token ? <SupportChatPage /> : <Navigate to="/login" />
+            } />
+
+            <Route path="/settings" element={
+              token ? <SettingsPage /> : <Navigate to="/login" />
             } />
           </Route>
         </Routes>
