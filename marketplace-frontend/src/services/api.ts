@@ -25,13 +25,13 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       sessionStorage.removeItem('token');
-      window.location.href = '/login';
-    }
+      delete api.defaults.headers.common['Authorization'];
 
-    if (error.response?.status === 429) {
-      console.warn('Rate limit exceeded');
+      // Не редиректим сразу, даем возможность обновить токен
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
-
     return Promise.reject(error);
   }
 );

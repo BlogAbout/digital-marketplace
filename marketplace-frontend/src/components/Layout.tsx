@@ -16,7 +16,7 @@ export default function Layout() {
       bgcolor: 'background.default',
     }}>
       <Header />
-      <Box component="main" sx={{ flex: 1 }}>
+      <Box component="main" sx={{ flex: 1 }} role="main">
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}

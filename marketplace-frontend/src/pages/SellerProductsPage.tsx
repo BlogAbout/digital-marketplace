@@ -150,7 +150,7 @@ export default function SellerProductsPage() {
       label: 'Товар',
       sortable: true,
       render: (product: Product) => (
-        <Stack direction="row" spacing={2} alignItems="center">
+        <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
           <Avatar sx={{ bgcolor: 'primary.main', width: 40, height: 40 }}>
             {product.name.charAt(0)}
           </Avatar>

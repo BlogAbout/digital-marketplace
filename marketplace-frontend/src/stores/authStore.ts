@@ -1,9 +1,17 @@
 import { create } from 'zustand';
 import axios from 'axios';
-import { securityService } from '../services/securityService';
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  balance?: number;
+  settings?: any;
+}
 
 interface AuthState {
-  user: any;
+  user: User | null;
   token: string | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
@@ -21,10 +29,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (email: string, password: string) => {
     set({ isLoading: true });
     try {
-      const response = await axios.post('/api/auth/login', { email, password });
+      const response = await axios.post('http://localhost:8080/api/auth/login', {
+        email,
+        password
+      });
       const { token, user } = response.data;
-      securityService.setSecureToken(token);
+
+      // Сохраняем токен
+      localStorage.setItem('token', token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
       set({ token, user, isLoading: false });
     } catch (error) {
       set({ isLoading: false });
@@ -35,10 +49,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   register: async (data: any) => {
     set({ isLoading: true });
     try {
-      const response = await axios.post('/api/auth/register', data);
+      const response = await axios.post('http://localhost:8080/api/auth/register', data);
       const { token, user } = response.data;
-      securityService.setSecureToken(token);
+
+      localStorage.setItem('token', token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
       set({ token, user, isLoading: false });
     } catch (error) {
       set({ isLoading: false });
@@ -48,31 +64,52 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: async () => {
     try {
-      await axios.post('/api/auth/logout');
+      const token = get().token;
+      if (token) {
+        await axios.post('http://localhost:8080/api/auth/logout', {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
     } finally {
-      securityService.clearAllData();
+      localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
       delete axios.defaults.headers.common['Authorization'];
       set({ user: null, token: null });
+      window.location.href = '/login';
     }
   },
 
   fetchUser: async () => {
     const token = get().token;
-    if (!token || securityService.isTokenExpired(token)) {
-      get().logout();
-      return;
-    }
+    if (!token) return;
 
     try {
-      const response = await axios.get('/api/auth/me');
+      const response = await axios.get('http://localhost:8080/api/auth/me', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       set({ user: response.data });
     } catch (error) {
-      get().logout();
+      console.error('Fetch user error:', error);
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
+        delete axios.defaults.headers.common['Authorization'];
+        set({ user: null, token: null });
+      }
     }
   },
 
   checkTokenExpiration: () => {
     const token = get().token;
-    return token ? !securityService.isTokenExpired(token) : false;
+    if (!token) return false;
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.exp * 1000 > Date.now();
+    } catch {
+      return false;
+    }
   },
 }));

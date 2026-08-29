@@ -83,7 +83,7 @@ export default function DashboardPage() {
       label: 'Товар',
       sortable: true,
       render: (product: Product) => (
-        <Stack direction="row" spacing={2} alignItems="center">
+        <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
           <AvatarWithStatus user={product.author!} size={36} showOnline={false} />
           <Typography variant="body2" fontWeight="medium">
             {product.name}

@@ -159,7 +159,7 @@ export default function ApiKeysPage() {
                     style={{ display: 'table-row' }}
                   >
                     <TableCell>
-                      <Stack direction="row" spacing={2} alignItems="center">
+                      <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
                         <Avatar sx={{ bgcolor: 'primary.main', width: 36, height: 36 }}>
                           <KeyIcon fontSize="small" />
                         </Avatar>

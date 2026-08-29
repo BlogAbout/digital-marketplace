@@ -106,7 +106,7 @@ export default function EnhancedEmptyState({
           <Stack
             direction="row"
             spacing={2}
-            justifyContent="center"
+            sx={{ justifyContent: 'center' }}
           >
             {primaryAction && (
               <Button

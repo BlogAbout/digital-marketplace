@@ -97,7 +97,7 @@ export default function ProductsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <Typography variant="h4" fontWeight="bold" gutterBottom>
+        <Typography variant="h1" sx={{ fontSize: '2rem', fontWeight: 'bold' }} gutterBottom>
           Каталог товаров
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>

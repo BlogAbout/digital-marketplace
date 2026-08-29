@@ -37,7 +37,7 @@ export default function FilterBar({
       transition={{ duration: 0.3 }}
     >
       <Paper sx={{ p: 2, mb: 3, borderRadius: 4 }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ alignItems: 'center' }}>
           <FilterListIcon color="action" />
 
           {onSearchChange && (

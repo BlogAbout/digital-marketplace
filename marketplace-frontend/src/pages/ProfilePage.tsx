@@ -124,7 +124,7 @@ export default function ProfilePage() {
       label: 'Товар',
       sortable: true,
       render: (product: Product) => (
-        <Stack direction="row" spacing={2} alignItems="center">
+        <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
           <Avatar sx={{ bgcolor: 'primary.main' }}>
             {product.name.charAt(0)}
           </Avatar>
@@ -169,7 +169,7 @@ export default function ProfilePage() {
       key: 'subscriber',
       label: 'Пользователь',
       render: (sub: any) => (
-        <Stack direction="row" spacing={2} alignItems="center">
+        <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
           <AvatarWithStatus user={sub.subscriber} size={36} />
           <Typography variant="body2">
             {sub.subscriber?.name}
@@ -194,7 +194,7 @@ export default function ProfilePage() {
       key: 'user',
       label: 'Пользователь',
       render: (sub: any) => (
-        <Stack direction="row" spacing={2} alignItems="center">
+        <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
           <AvatarWithStatus user={sub.user} size={36} />
           <Typography variant="body2">
             {sub.user?.name}

@@ -174,7 +174,7 @@ export default function SupportPage() {
               <Box sx={{ flex: 1, overflow: 'auto', mb: 2 }}>
                 {selectedTicket.messages?.map((msg) => (
                   <Box key={msg.id} sx={{ mb: 2 }}>
-                    <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{ alignItems: 'center', mb: 0.5 }}>
                       <Avatar sx={{ width: 24, height: 24, fontSize: 12 }}>
                         {msg.user?.name?.charAt(0) || 'U'}
                       </Avatar>

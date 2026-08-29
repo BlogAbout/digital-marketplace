@@ -29,7 +29,11 @@ export default function HomePage() {
           }}
         />
         <Container maxWidth="xl">
-          <Grid container spacing={4} alignItems="center">
+          <Typography variant="h1" sx={{ fontSize: '2.5rem', fontWeight: 'bold' }}>
+            Добро пожаловать в Marketplace
+          </Typography>
+
+          <Grid container spacing={4} sx={{ alignItems: 'center' }}>
             <Grid item xs={12} md={6}>
               <motion.div
                 initial={{opacity: 0, y: 30}}
