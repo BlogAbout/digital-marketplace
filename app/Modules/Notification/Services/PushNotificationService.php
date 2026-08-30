@@ -5,6 +5,7 @@ namespace App\Modules\Notification\Services;
 use App\Modules\User\Models\User;
 use Minishlink\WebPush\WebPush;
 use Minishlink\WebPush\Subscription;
+use Illuminate\Support\Facades\Log;
 
 class PushNotificationService
 {
@@ -38,25 +39,26 @@ class PushNotificationService
                     'authToken' => $subscription->auth_token,
                 ]);
 
-                $this->webPush->queueNotification(
-                    $webPushSubscription,
-                    json_encode([
-                        'title' => $title,
-                        'body' => $body,
-                        'data' => $data,
-                    ])
-                );
+                $payload = json_encode([
+                    'title' => $title,
+                    'body' => $body,
+                    'data' => $data,
+                ]);
+
+                if ($payload !== false) {
+                    $this->webPush->queueNotification($webPushSubscription, $payload);
+                }
             }
 
             foreach ($this->webPush->flush() as $report) {
                 if (!$report->isSuccess()) {
-                    \Log::warning('Push notification failed: ' . $report->getReason());
+                    Log::warning('Push notification failed: ' . $report->getReason());
                 }
             }
 
             return true;
         } catch (\Exception $e) {
-            \Log::error('Push notification failed: ' . $e->getMessage());
+            Log::error('Push notification failed: ' . $e->getMessage());
             return false;
         }
     }

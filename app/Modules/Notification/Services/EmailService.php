@@ -2,6 +2,8 @@
 
 namespace App\Modules\Notification\Services;
 
+use App\Modules\Dispute\Models\Dispute;
+use App\Modules\Shop\Models\ShopOrder;
 use App\Modules\User\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
@@ -51,7 +53,7 @@ class EmailService
     /**
      * Отправить уведомление о новом заказе
      */
-    public function sendNewOrderEmail(User $user, $order): bool
+    public function sendNewOrderEmail(User $user, ShopOrder $order): bool
     {
         return $this->send(
             $user,
@@ -64,7 +66,7 @@ class EmailService
     /**
      * Отправить уведомление о продаже
      */
-    public function sendSaleEmail(User $user, $order): bool
+    public function sendSaleEmail(User $user, ShopOrder $order): bool
     {
         return $this->send(
             $user,
@@ -90,7 +92,7 @@ class EmailService
     /**
      * Отправить уведомление о разрешении спора
      */
-    public function sendDisputeResolvedEmail(User $user, $dispute): bool
+    public function sendDisputeResolvedEmail(User $user, Dispute $dispute): bool
     {
         return $this->send(
             $user,

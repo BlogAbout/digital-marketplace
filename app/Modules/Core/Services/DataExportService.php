@@ -16,7 +16,6 @@ class DataExportService
     public function exportProductsCSV(User $user): StreamedResponse
     {
         $filename = 'products_' . date('Y-m-d_His') . '.csv';
-
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
@@ -25,10 +24,12 @@ class DataExportService
         $callback = function() use ($user) {
             $file = fopen('php://output', 'w');
 
-            // Заголовки
+            if ($file === false) {
+                return;
+            }
+
             fputcsv($file, ['Название', 'Цена', 'Статус', 'Продажи', 'Просмотры', 'Дата создания']);
 
-            // Данные
             ShopProduct::query()
                 ->where('author_id', $user->id)
                 ->chunk(100, function ($products) use ($file) {
@@ -64,6 +65,10 @@ class DataExportService
 
         $callback = function() use ($user) {
             $file = fopen('php://output', 'w');
+
+            if ($file === false) {
+                return;
+            }
 
             // Заголовки
             fputcsv($file, ['Заказ', 'Товар', 'Продавец', 'Сумма', 'Статус', 'Дата']);

@@ -16,8 +16,9 @@ class AggregateStatistics extends Command
 
     public function handle(): int
     {
-        $date = $this->option('date')
-            ? Carbon::parse($this->option('date'))
+        $dateOption = $this->option('date');
+        $date = is_string($dateOption) && $dateOption !== ''
+            ? Carbon::parse($dateOption)
             : Carbon::yesterday();
 
         $this->info("Агрегация статистики за {$date->toDateString()}");

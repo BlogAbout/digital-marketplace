@@ -11,7 +11,7 @@ use Illuminate\Console\Command;
 class ShowStatistics extends Command
 {
     protected $signature = 'statistics:show
-        {--type=platform : Тип статистики (platform, seller, product)}
+        {--type=platform : Тип статистики}
         {--seller-id= : ID продавца}
         {--product-id= : ID товара}
         {--days=7 : Количество дней}';
@@ -20,12 +20,13 @@ class ShowStatistics extends Command
 
     public function handle(): int
     {
-        $type = $this->option('type');
-        $days = (int) $this->option('days');
-        $from = Carbon::now()->subDays($days);
+        $typeOption = $this->option('type');
+        $type = is_string($typeOption) ? $typeOption : 'platform';
 
-        $this->info("Статистика за последние {$days} дней:");
-        $this->newLine();
+        $daysOption = $this->option('days');
+        $days = is_numeric($daysOption) ? (int) $daysOption : 7;
+
+        $from = Carbon::now()->subDays($days);
 
         switch ($type) {
             case 'platform':
@@ -33,26 +34,22 @@ class ShowStatistics extends Command
                 break;
 
             case 'seller':
-                $sellerId = $this->option('seller-id');
-                if (!$sellerId) {
+                $sellerIdOption = $this->option('seller-id');
+                if (!is_string($sellerIdOption) || $sellerIdOption === '') {
                     $this->error('Укажите --seller-id');
                     return self::FAILURE;
                 }
-                $this->showSellerStatistics($sellerId, $from);
+                $this->showSellerStatistics($sellerIdOption, $from);
                 break;
 
             case 'product':
-                $productId = $this->option('product-id');
-                if (!$productId) {
+                $productIdOption = $this->option('product-id');
+                if (!is_string($productIdOption) || $productIdOption === '') {
                     $this->error('Укажите --product-id');
                     return self::FAILURE;
                 }
-                $this->showProductStatistics($productId, $from);
+                $this->showProductStatistics($productIdOption, $from);
                 break;
-
-            default:
-                $this->error('Неверный тип статистики');
-                return self::FAILURE;
         }
 
         return self::SUCCESS;

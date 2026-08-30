@@ -3,24 +3,22 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Redis;
 
 class ClearStatisticsCache extends Command
 {
-    protected $signature = 'statistics:clear-cache
-        {--type=all : Тип кэша (all, products, users, platform)}';
-
+    protected $signature = 'statistics:clear-cache {--type=all : Тип кэша (all, products, users, platform)}';
     protected $description = 'Очистка кэша статистики';
 
     public function handle(): int
     {
-        $type = $this->option('type');
+        $typeOption = $this->option('type');
+        $type = is_string($typeOption) ? $typeOption : 'all';
 
         $patterns = [];
 
         if ($type === 'all' || $type === 'products') {
             $patterns[] = 'product:statistics:*';
-            $patterns[] = 'shop:product:*';
         }
 
         if ($type === 'all' || $type === 'users') {
@@ -44,13 +42,13 @@ class ClearStatisticsCache extends Command
         return self::SUCCESS;
     }
 
-    /**
-     * Очистка кэша по паттерну
-     */
     protected function clearCacheByPattern(string $pattern): int
     {
         try {
-            $redis = Cache::getRedis();
+            /** @var \Illuminate\Redis\Connections\Connection $redis */
+            $redis = Redis::connection();
+
+            /** @var array<int, string> $keys */
             $keys = $redis->keys($pattern);
 
             foreach ($keys as $key) {

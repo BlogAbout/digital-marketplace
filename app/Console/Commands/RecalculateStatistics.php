@@ -6,11 +6,11 @@ use App\Modules\Shop\Models\ShopOrder;
 use App\Modules\Shop\Models\ShopProduct;
 use App\Modules\Statistics\Models\ProductStatistic;
 use App\Modules\Statistics\Models\UserStatistic;
-use App\Modules\User\Models\User;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Redis;
 
 class RecalculateStatistics extends Command
 {
@@ -24,16 +24,21 @@ class RecalculateStatistics extends Command
 
     public function handle(): int
     {
-        $from = $this->option('from')
-            ? Carbon::parse($this->option('from'))->startOfDay()
+        $fromOption = $this->option('from');
+        $toOption = $this->option('to');
+        $typeOption = $this->option('type');
+        $chunkOption = $this->option('chunk');
+
+        $from = is_string($fromOption) && $fromOption !== ''
+            ? Carbon::parse($fromOption)->startOfDay()
             : Carbon::now()->subDays(30)->startOfDay();
 
-        $to = $this->option('to')
-            ? Carbon::parse($this->option('to'))->endOfDay()
+        $to = is_string($toOption) && $toOption !== ''
+            ? Carbon::parse($toOption)->endOfDay()
             : Carbon::now()->endOfDay();
 
-        $type = $this->option('type');
-        $chunkSize = (int) $this->option('chunk');
+        $type = is_string($typeOption) ? $typeOption : 'all';
+        $chunkSize = is_numeric($chunkOption) ? (int) $chunkOption : 100;
 
         $this->info("Пересчет статистики с {$from->toDateString()} по {$to->toDateString()}");
         $this->info("Тип: {$type}");
@@ -205,11 +210,16 @@ class RecalculateStatistics extends Command
      */
     protected function clearCacheByPattern(string $pattern): void
     {
-        $redis = Cache::getRedis();
-        $keys = $redis->keys($pattern);
+        try {
+            /** @var \Illuminate\Redis\Connections\Connection $redis */
+            $redis = Redis::connection();
+            $keys = $redis->keys($pattern);
 
-        foreach ($keys as $key) {
-            $redis->del($key);
+            foreach ($keys as $key) {
+                $redis->del($key);
+            }
+        } catch (\Exception $e) {
+            // Игнорируем ошибки Redis
         }
     }
 }

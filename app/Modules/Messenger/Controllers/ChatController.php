@@ -117,7 +117,7 @@ class ChatController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        // Проверяем, что пользователь является администратором чата
+        /** @var ChatParticipant|null $participant */
         $participant = ChatParticipant::query()
             ->where('chat_id', $chat->id)
             ->where('user_id', $user->id)
@@ -125,9 +125,7 @@ class ChatController extends Controller
             ->first();
 
         if (!$participant || !$participant->isAdmin()) {
-            return response()->json([
-                'message' => 'Только администратор может добавлять участников',
-            ], 403);
+            return response()->json(['message' => 'Только администратор может добавлять участников'], 403);
         }
 
         /** @var User $newParticipant */

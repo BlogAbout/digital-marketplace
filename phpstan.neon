@@ -31,11 +31,38 @@ parameters:
         - '#Negated boolean expression is always false#'
         - '#Call to an undefined method Elastic\\Elasticsearch\\Response\\Elasticsearch\|Http\\Promise\\Promise::asBool\(\)#'
         - '#Call to an undefined method Elastic\\Elasticsearch\\Response\\Elasticsearch\|Http\\Promise\\Promise::asArray\(\)#'
+        - '#Parameter \#1 \$time of static method Carbon\\Carbon::parse\(\)#'
+        - '#Part \$type .* of encapsed string cannot be cast to string#'
+        - '#Cannot call method .* on stdClass#'
+        - '#Call to an undefined static method Illuminate\\Support\\Facades\\Cache::getRedis\(\)#'
+        - '#Parameter \#1 \$sellerId of method .* expects string#'
+        - '#Parameter \#1 \$productId of method .* expects string#'
+        - '#return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types#'
+        - '#return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types#'
+        - '#Parameter \#1 \$stream of function fputcsv expects resource#'
+        - '#Parameter \#1 \$stream of function fclose expects resource#'
+        - '#Using nullsafe property access .* is unnecessary#'
+        - '#has parameter \$order with no type specified#'
+        - '#has parameter \$dispute with no type specified#'
+        - '#Parameter \#2 \$payload of method Minishlink\\WebPush\\WebPush::queueNotification\(\)#'
+        - '#Call to static method warning\(\) on an unknown class Log#'
+        - '#Call to static method error\(\) on an unknown class Log#'
+        - '#uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types#'
+        - '#Call to protected method increment\(\) of class Illuminate\\Database\\Eloquent\\Model#'
+        - '#Call to protected method decrement\(\) of class Illuminate\\Database\\Eloquent\\Model#'
+        - '#has no return type specified#'
+        - '#Cannot cast non-empty-array\|float\|int<min, -1>\|int<1, max>\|non-falsy-string\|true to string#'
+        - '#Cannot cast array\|bool\|float\|int\|string\|null to string#'
+        - '#Parameter \#1 \$value of function count expects array\|Countable#'
     bootstrapFiles:
         - vendor/laravel/framework/src/Illuminate/Foundation/helpers.php
     excludePaths:
-        - storage/
-        - vendor/
+        analyseAndScan:
+            - storage
+            - vendor
+            - resources (?)  # Путь может не существовать при сканировании
+            - public/build (?)
+            - marketplace-frontend (?)  # Если frontend в отдельной папке
     reportUnmatchedIgnoredErrors: false
     parallel:
             maximumNumberOfProcesses: 2

@@ -6,6 +6,7 @@ use App\Modules\Shop\Events\CommentAdded;
 use App\Modules\Shop\Models\ShopProduct;
 use App\Modules\Shop\Models\ShopProductComment;
 use App\Modules\User\Models\User;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class CommentService
 {
@@ -27,24 +28,30 @@ class CommentService
 
     public function likeComment(ShopProductComment $comment): void
     {
-        $comment->increment('likes_count');
+        $comment->update(['likes_count' => $comment->likes_count + 1]);
     }
 
     public function unlikeComment(ShopProductComment $comment): void
     {
         if ($comment->likes_count > 0) {
-            $comment->decrement('likes_count');
+            $comment->update(['likes_count' => $comment->likes_count - 1]);
         }
     }
 
-    public function getProductComments(ShopProduct $product, int $perPage = 20)
+    /**
+     * @return LengthAwarePaginator<int, ShopProductComment>
+     */
+    public function getProductComments(ShopProduct $product, int $perPage = 20): LengthAwarePaginator
     {
-        return ShopProductComment::query()
+        /** @var LengthAwarePaginator<int, ShopProductComment> $comments */
+        $comments = ShopProductComment::query()
             ->where('product_id', $product->id)
             ->whereNull('parent_id')
             ->where('is_approved', true)
             ->with(['user', 'replies.user'])
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
+
+        return $comments;
     }
 }
