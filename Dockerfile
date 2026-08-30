@@ -52,11 +52,12 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
 
+# Копируем файлы
 COPY . .
 
 RUN COMPOSER_MEMORY_LIMIT=-1 composer install --no-interaction --no-dev --prefer-dist
 
-# Создать необходимые директории
+# Создаем директории
 RUN mkdir -p storage/framework/cache/data \
     storage/framework/sessions \
     storage/framework/views \
