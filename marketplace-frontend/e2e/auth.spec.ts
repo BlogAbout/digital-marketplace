@@ -5,19 +5,30 @@ test.describe('Authentication', () => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
-    // Используем более надежные селекторы
-    const loginButton = page.locator('a[href="/login"]').first();
-    await loginButton.click();
+    // Ищем ссылку на вход
+    const loginLink = page.locator('a[href="/login"]').first();
+    await loginLink.waitFor({ state: 'visible', timeout: 10000 });
+    await loginLink.click();
 
     await expect(page).toHaveURL(/\/login/);
   });
 
-  test('should show login form', async ({ page }) => {
+  test('should login with test user', async ({ page }) => {
     await page.goto('/login');
     await page.waitForLoadState('networkidle');
 
-    // Проверяем наличие формы
-    await expect(page.locator('h1, h4, h5').first()).toBeVisible();
+    // Заполняем форму
+    await page.fill('input[name="email"]', 'test@example.com');
+    await page.fill('input[name="password"]', 'password123');
+
+    // Нажимаем кнопку входа
+    await page.click('button[type="submit"]');
+
+    // Ждем перехода на главную
+    await page.waitForTimeout(2000);
+
+    // Проверяем, что мы вошли
+    expect(await page.evaluate(() => localStorage.getItem('token'))).toBeTruthy();
   });
 
   test('should navigate to register page', async ({ page }) => {
