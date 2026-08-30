@@ -178,3 +178,17 @@ export interface DailyStatistic {
   revenue: number;
   sales: number;
 }
+
+export interface ProductComment {
+  id: string;
+  product_id: string;
+  user_id: string;
+  parent_id: string | null;
+  content: string;
+  rating: number | null;
+  likes_count: number;
+  is_approved: boolean;
+  user?: User;
+  replies?: ProductComment[];
+  created_at: string;
+}

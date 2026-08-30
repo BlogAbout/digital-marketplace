@@ -15,3 +15,7 @@ Broadcast::channel('chat.{chatId}', function (User $user, string $chatId) {
         ->whereNull('left_at')
         ->exists();
 });
+
+Broadcast::channel('product.{productId}', function ($user, $productId) {
+    return true; // Все могут слушать комментарии
+});

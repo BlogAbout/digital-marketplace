@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Shop\Controllers\CommentController;
 use App\Modules\Shop\Controllers\ShopCategoryController;
 use App\Modules\Shop\Controllers\ShopOrderController;
 use App\Modules\Shop\Controllers\ShopProductController;
@@ -10,6 +11,7 @@ Route::get('shop/categories', [ShopCategoryController::class, 'index']);
 Route::get('shop/categories/{id}', [ShopCategoryController::class, 'show']);
 Route::get('shop/products', [ShopProductController::class, 'index']);
 Route::get('shop/products/{id}', [ShopProductController::class, 'show']);
+Route::get('shop/products/{productId}/comments', [CommentController::class, 'index']);
 
 // Защищенные маршруты
 Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
@@ -41,4 +43,8 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
     Route::post('shop/orders/{id}/refund', [ShopOrderController::class, 'refund'])
         ->middleware('role:admin,moderator');
     Route::get('shop/orders/{id}/download', [ShopOrderController::class, 'download']);
+
+    Route::post('shop/products/{productId}/comments', [CommentController::class, 'store']);
+    Route::post('comments/{id}/like', [CommentController::class, 'like']);
+    Route::post('comments/{id}/unlike', [CommentController::class, 'unlike']);
 });

@@ -36,7 +36,6 @@ parameters:
     excludePaths:
         - storage/
         - vendor/
-        - node_modules/
     reportUnmatchedIgnoredErrors: false
     parallel:
             maximumNumberOfProcesses: 2

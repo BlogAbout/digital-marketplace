@@ -6,8 +6,10 @@ interface WebSocketOptions {
   onMessage?: (message: Message) => void;
   onNotification?: (notification: Notification) => void;
   onChatCreated?: (chat: any) => void;
+  onComment?: (comment: any) => void;
   chatId?: string;
   userId?: string;
+  productId?: string;
 }
 
 export function useWebSocket(options: WebSocketOptions) {
@@ -69,6 +71,23 @@ export function useWebSocket(options: WebSocketOptions) {
       console.error('Error subscribing to chat channel:', error);
     }
   }, [chatId]);
+
+  useEffect(() => {
+    if (!options.productId) return;
+
+    const echo = getEcho();
+    if (!echo) return;
+
+    const channel = echo.private(`product.${options.productId}`);
+
+    channel.listen('.comment.added', (e: any) => {
+      callbacksRef.current.onComment?.(e);
+    });
+
+    return () => {
+      echo.leave(`product.${options.productId}`);
+    };
+  }, [options.productId]);
 
   return {};
 }
