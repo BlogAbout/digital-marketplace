@@ -26,6 +26,8 @@ const OrdersPage = lazyLoad(() => import('./pages/OrdersPage'));
 const SettingsPage = lazyLoad(() => import('./pages/SettingsPage'));
 const ApiKeysPage = lazyLoad(() => import('./pages/ApiKeysPage'));
 const AboutPage = lazyLoad(() => import('./pages/AboutPage'));
+const PurchasesPage = lazyLoad(() => import('./pages/PurchasesPage'));
+const SalesPage = lazyLoad(() => import('./pages/SalesPage'));
 
 function App() {
   const { token, fetchUser } = useAuthStore();
@@ -105,6 +107,14 @@ function App() {
 
             <Route path="/settings/api-keys" element={
               token ? <ApiKeysPage /> : <Navigate to="/login" />
+            } />
+
+            <Route path="/dashboard/purchases" element={
+              token ? <PurchasesPage /> : <Navigate to="/login" />
+            } />
+
+            <Route path="/dashboard/sales" element={
+              token ? <SalesPage /> : <Navigate to="/login" />
             } />
           </Route>
         </Routes>

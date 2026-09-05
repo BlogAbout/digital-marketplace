@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Typography, type TypographyProps } from '@mui/material';
-import { useInView } from 'framer-motion';
 
 interface CountUpProps extends TypographyProps {
   end: number;
@@ -19,33 +18,38 @@ export default function CountUp({
                                   ...props
                                 }: CountUpProps) {
   const [value, setValue] = useState(0);
-  const ref = useInView();
+  const elementRef = useRef<HTMLElement>(null);
+  const animationRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!ref) return;
-
-    let startTime: number;
-    let animationFrame: number;
+    let startTime: number | null = null;
 
     const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
+      if (startTime === null) {
+        startTime = timestamp;
+      }
+
       const progress = (timestamp - startTime) / duration;
 
       if (progress < 1) {
         setValue(end * progress);
-        animationFrame = requestAnimationFrame(animate);
+        animationRef.current = requestAnimationFrame(animate);
       } else {
         setValue(end);
       }
     };
 
-    animationFrame = requestAnimationFrame(animate);
+    animationRef.current = requestAnimationFrame(animate);
 
-    return () => cancelAnimationFrame(animationFrame);
+    return () => {
+      if (animationRef.current !== null) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
   }, [end, duration]);
 
   return (
-    <Typography ref={ref} {...props}>
+    <Typography ref={elementRef} {...props}>
       {prefix}{value.toFixed(decimals)}{suffix}
     </Typography>
   );

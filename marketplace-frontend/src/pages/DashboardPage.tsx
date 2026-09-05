@@ -32,6 +32,7 @@ import StatusBadge from '../components/StatusBadge';
 import SkeletonLoader from '../components/SkeletonLoader';
 import FloatingActionButton from '../components/FloatingActionButton';
 import AvatarWithStatus from '../components/AvatarWithStatus';
+import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
@@ -72,6 +73,8 @@ export default function DashboardPage() {
   const sidebarItems = [
     { label: 'Обзор', icon: <DashboardIcon />, to: '/dashboard' },
     { label: 'Мои товары', icon: <ShoppingCartIcon />, to: '/dashboard/products' },
+    { label: 'Мои покупки', icon: <ShoppingBagIcon />, to: '/dashboard/purchases' },
+    { label: 'Мои продажи', icon: <ShoppingBagIcon />, to: '/dashboard/sales' },
     { label: 'Заказы', icon: <ReceiptIcon />, to: '/dashboard/orders' },
     { label: 'Статистика', icon: <BarChartIcon />, to: '/dashboard/statistics' },
     { label: 'Споры', icon: <GavelIcon />, to: '/dashboard/disputes' },

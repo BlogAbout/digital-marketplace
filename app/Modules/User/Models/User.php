@@ -125,4 +125,20 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
     {
         return $this->getSetting('currency', 'USD');
     }
+
+    /**
+     * Проверить, может ли пользователь продавать
+     */
+    public function canSell(): bool
+    {
+        return !$this->is_block;
+    }
+
+    /**
+     * Проверить, может ли пользователь покупать
+     */
+    public function canBuy(): bool
+    {
+        return !$this->is_block;
+    }
 }

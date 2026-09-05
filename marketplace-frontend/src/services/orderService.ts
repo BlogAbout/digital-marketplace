@@ -12,7 +12,12 @@ export const orderService = {
   },
 
   async getMyOrders(): Promise<Order[]> {
-    const response = await api.get('/shop/orders/my');
+    const response = await api.get('/shop/orders/my?type=buyer');
+    return response.data.data;
+  },
+
+  async getMySales(): Promise<Order[]> {
+    const response = await api.get('/shop/orders/my?type=seller');
     return response.data.data;
   },
 
